@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SketchMasking</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button.primary {
+      background: #4CAF50;
+      font-weight: bold;
+    }
+
+    .button.primary:hover {
+      background: #45a049;
+    }
+
+    .shortcut-info {
+      font-size: 11px;
+      opacity: 0.7;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    .status {
+      padding: 8px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .status.active {
+      background: rgba(76, 175, 80, 0.3);
+      border: 1px solid #4CAF50;
+    }
+
+    .status.inactive {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .feature-list {
+      font-size: 12px;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+
+    .feature-list ul {
+      margin: 0;
+      padding-left: 15px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="logo">🎨 SketchMasking</div>
+    <div class="subtitle">웹페이지 그리기 & 텍스트 마스킹</div>
+  </div>
+
+  <div id="drawing-status" class="status inactive">
+    그리기 모드: 비활성
+  </div>
+
+  <div class="section">
+    <div class="section-title">🎨 그리기 도구</div>
+    <button id="toggle-drawing" class="button primary">그리기 모드 토글</button>
+    <div class="shortcut-info">단축키: Alt+1 (맥: Option+1)</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🔒 텍스트 마스킹</div>
+    <button id="mask-text" class="button">텍스트 마스킹/해제 토글</button>
+    <div class="shortcut-info">단축키: Alt+2 (맥: Option+2)</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📋 사용 방법</div>
+    <div class="feature-list">
+      <strong>🎨 그리기 기능:</strong>
+      <ul>
+        <li><strong>활성화:</strong> Alt+1 (맥: Option+1)</li>
+        <li><strong>도구 선택:</strong> 박스(▢), 원(○), 펜(✎), 선(/)</li>
+        <li><strong>그리기:</strong> 마우스로 드래그하여 그리기</li>
+        <li><strong>종료:</strong> 도구바의 ✕ 버튼 또는 단축키</li>
+      </ul>
+
+      <strong>🔒 텍스트 마스킹:</strong>
+      <ul>
+        <li><strong>마스킹:</strong> 텍스트 선택 → Alt+2로 ***로 변환</li>
+        <li><strong>해제:</strong> 선택 없이 Alt+2로 원본 복구</li>
+        <li><strong>자동 해제:</strong> 그리기 모드 종료 시 모든 마스킹 해제</li>
+      </ul>
+
+      <strong>💡 팁:</strong>
+      <ul>
+        <li>마스킹은 여러 개 영역에 적용 가능</li>
+        <li>그리기 모드를 끄면 캔버스와 마스킹 모두 초기화</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    v1.0.0 | SungHyeon
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

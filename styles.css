@@ -1,0 +1,259 @@
+/* SketchMasking 확장프로그램 스타일 */
+
+:root {
+  --sketch-z-index-overlay: 2147483647;
+  --sketch-z-index-notification: 2147483648;
+  --sketch-z-index-toolbar: 1000000;
+  --sketch-stroke-color: #FF0000;
+  --sketch-toolbar-bg: rgba(0, 0, 0, 0.9);
+  --sketch-toolbar-border: rgba(255, 255, 255, 0.1);
+  --sketch-button-active: #4CAF50;
+  --sketch-button-action: rgba(255, 87, 34, 0.8);
+  --sketch-notification-success: #4CAF50;
+  --sketch-notification-error: #f44336;
+  --sketch-notification-info: #2196F3;
+}
+
+/* 오버레이 기본 스타일 */
+#sketch-masking-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: var(--sketch-z-index-overlay);
+  display: none;
+  background: transparent;
+}
+
+/* 오버레이가 활성화된 경우 */
+#sketch-masking-overlay.active {
+  display: block;
+  pointer-events: all;
+}
+
+/* 캔버스 스타일 */
+#sketch-masking-overlay canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.sketch-canvas,
+.sketch-temp-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+/* 도구 모음 컨테이너 스타일 */
+#sketch-toolbar-container {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: var(--sketch-z-index-toolbar);
+  pointer-events: all;
+}
+
+/* 도구 모음 스타일 */
+#sketch-toolbar {
+  background: var(--sketch-toolbar-bg);
+  border-radius: 6px;
+  padding: 5px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--sketch-toolbar-border);
+  transition: all 0.3s ease;
+}
+
+/* 도구 버튼 공통 스타일 */
+#sketch-toolbar button {
+  border-radius: 4px;
+  padding: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 토글 버튼 스타일 */
+#sketch-toggle-btn {
+  background: rgba(100, 100, 100, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+  padding: 0;
+}
+
+#sketch-toggle-btn:hover {
+  background: rgba(120, 120, 120, 0.9);
+}
+
+/* 일반 도구 버튼 스타일 */
+#sketch-toolbar button:not(#sketch-toggle-btn):not(.action-button) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 활성화된 도구 버튼 스타일 */
+#sketch-toolbar button.active {
+  background: var(--sketch-button-active);
+  border: 1px solid #66BB6A;
+  font-weight: 600;
+}
+
+/* 액션 버튼 스타일 (닫기 등) */
+#sketch-toolbar button.action-button {
+  background: var(--sketch-button-action);
+}
+
+/* 알림 스타일 */
+#sketch-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  color: white;
+  border-radius: 8px;
+  z-index: var(--sketch-z-index-notification);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.3s ease;
+}
+
+#sketch-notification.success {
+  background: var(--sketch-notification-success);
+}
+
+#sketch-notification.error {
+  background: var(--sketch-notification-error);
+}
+
+#sketch-notification.info {
+  background: var(--sketch-notification-info);
+}
+
+#sketch-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 툴바 접기/펴기 상태 */
+#sketch-toolbar.collapsed {
+  width: 36px;
+  gap: 0;
+}
+
+#sketch-toolbar.collapsed button:not(#sketch-toggle-btn) {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+  display: none;
+}
+
+/* 반응형 도구 모음 */
+@media (max-width: 768px) {
+  #sketch-toolbar-container {
+    left: 10px;
+    top: 10px;
+  }
+
+  #sketch-toolbar {
+    padding: 5px;
+    gap: 4px;
+  }
+
+  #sketch-toolbar button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 12px;
+  }
+}
+
+/* 그리기 모드 관련 스타일 */
+body.sketch-drawing-mode {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+body.sketch-drawing-mode::-webkit-scrollbar {
+  display: none;
+}
+
+/* 페이지 요소와의 상호작용 방지 */
+body.sketch-drawing-mode * {
+  pointer-events: none;
+}
+
+/* 오버레이와 도구 모음은 상호작용 허용 */
+body.sketch-drawing-mode #sketch-masking-overlay,
+body.sketch-drawing-mode #sketch-toolbar-container,
+body.sketch-drawing-mode #sketch-toolbar,
+body.sketch-drawing-mode #sketch-toolbar * {
+  pointer-events: all;
+}
+
+/* 마스킹된 텍스트 스타일 */
+.sketch-masked-text {
+  background-color: rgba(255, 255, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+
+/* 접근성 지원 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sketch-toolbar-bg: rgba(20, 20, 20, 0.9);
+    --sketch-toolbar-border: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --sketch-toolbar-bg: black;
+    --sketch-toolbar-border: white;
+  }
+
+  #sketch-toolbar {
+    border: 2px solid white;
+  }
+
+  #sketch-toolbar button {
+    background: white;
+    color: black;
+    border: 1px solid black;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #sketch-toolbar,
+  #sketch-notification,
+  .sketch-masked-text {
+    transition: none;
+  }
+
+  #sketch-toolbar.collapsed button:not(#sketch-toggle-btn) {
+    transform: none;
+  }
+}
