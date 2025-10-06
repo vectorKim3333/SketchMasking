@@ -9,7 +9,7 @@ class SketchMasking {
       MIN_SCREEN_HEIGHT: 1080,
       Z_INDEX_OVERLAY: 2147483647,
       Z_INDEX_NOTIFICATION: 2147483648,
-      NOTIFICATION_DURATION: 3000,
+      NOTIFICATION_DURATION: 1000,
       TOOLBAR_UPDATE_DELAY: 10
     };
 
@@ -24,6 +24,7 @@ class SketchMasking {
 
     // 상태 변수들
     this.isDrawingMode = false;
+    this.isAreaMaskingMode = false;
     this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
     this.isDrawing = false;
     this.toolbarCollapsed = false;
@@ -45,6 +46,7 @@ class SketchMasking {
     // 데이터
     this.paths = [];
     this.maskedElements = [];
+    this.areaMasks = []; // 영역 마스킹 정보 저장
 
     this.init();
   }
@@ -111,6 +113,9 @@ class SketchMasking {
     this.overlay.id = 'sketch-masking-overlay';
     this.overlay.style.width = dimensions.width + 'px';
     this.overlay.style.height = dimensions.height + 'px';
+    // 초기에는 숨김 상태
+    this.overlay.style.display = 'none';
+    this.overlay.style.pointerEvents = 'none';
 
     // 메인 캔버스 생성
     const mainCanvas = this.createCanvas('sketch-canvas', dimensions);
@@ -271,87 +276,188 @@ class SketchMasking {
         this.toggleDrawingMode();
       } else if (request.command === 'mask_selected_text') {
         this.maskSelectedText();
+      } else if (request.command === 'toggle_area_masking') {
+        this.toggleAreaMaskingMode();
+      } else if (request.command === 'get_status') {
+        // 현재 상태 정보 반환
+        sendResponse({
+          status: 'success',
+          data: {
+            isDrawingMode: this.isDrawingMode,
+            isAreaMaskingMode: this.isAreaMaskingMode,
+            currentTool: this.currentTool,
+            currentMode: this.getCurrentMode()
+          }
+        });
+        return true; // 비동기 응답을 위해 true 반환
       }
       sendResponse({ status: 'success' });
     });
   }
 
-  toggleDrawingMode() {
-    this.isDrawingMode = !this.isDrawingMode;
+  // 유틸리티 함수들: 모드 상태 관리
+  getCurrentMode() {
+    if (this.isDrawingMode) return 'drawing';
+    if (this.isAreaMaskingMode) return 'area_masking';
+    return 'normal';
+  }
 
+  isAnyModeActive() {
+    return this.isDrawingMode || this.isAreaMaskingMode;
+  }
+
+  deactivateAllModes() {
     if (this.isDrawingMode) {
-      // 오버레이가 DOM에 있는지 확인
-      if (!document.body.contains(this.overlay)) {
-        document.body.appendChild(this.overlay);
-      }
-
-      this.overlay.style.display = 'block';
-      this.overlay.style.pointerEvents = 'all';
-      this.overlay.style.zIndex = this.CONSTANTS.Z_INDEX_OVERLAY;
-      document.body.style.userSelect = 'none';
-      document.body.classList.add('sketch-drawing-mode');
-
-      // DOM 렌더링 완료 후 크기 재설정
-      requestAnimationFrame(() => {
-        this.resizeCanvases();
-
-        // 크기가 0이면 강제로 다시 설정
-        if (this.overlay.offsetWidth === 0 || this.overlay.offsetHeight === 0) {
-          this.forceOverlaySize();
-        }
-
-        // 기본 도구 설정 및 활성화 표시
-        this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
-        this.updateToolbarButtons();
-      });
-
-      this.showNotification('🎨 그리기 모드 활성화', 'success');
-    } else {
-      // 그리기 모드 종료 시 모든 그림 및 마스킹 초기화
-      this.clearCanvas();
-
-      // 마스킹된 텍스트가 있으면 모두 해제
-      if (this.maskedElements.length > 0) {
-        this.unmaskAllText();
-      }
-
-      this.overlay.style.display = 'none';
-      this.overlay.style.pointerEvents = 'none';
-      document.body.style.userSelect = 'auto';
-      document.body.classList.remove('sketch-drawing-mode');
-
-      this.showNotification('🧹 그리기 모드 비활성화', 'info');
+      this.deactivateDrawingMode();
+      this.isDrawingMode = false;
+    }
+    if (this.isAreaMaskingMode) {
+      this.deactivateAreaMaskingMode();
+      this.isAreaMaskingMode = false;
     }
   }
 
+  toggleDrawingMode() {
+    if (this.isDrawingMode) {
+      // 그리기 모드 비활성화
+      this.deactivateDrawingMode();
+      this.isDrawingMode = false;
+    } else {
+      // 다른 모드들과 충돌 방지 - 영역 마스킹 모드 비활성화
+      if (this.isAreaMaskingMode) {
+        this.deactivateAreaMaskingMode();
+        this.isAreaMaskingMode = false;
+      }
+
+      // 그리기 모드 활성화
+      this.activateDrawingMode();
+      this.isDrawingMode = true;
+    }
+  }
+
+  activateDrawingMode() {
+    // 오버레이가 DOM에 있는지 확인
+    if (!document.body.contains(this.overlay)) {
+      document.body.appendChild(this.overlay);
+    }
+
+    // 오버레이 활성화
+    this.overlay.style.display = 'block';
+    this.overlay.style.pointerEvents = 'all';
+    this.overlay.style.zIndex = this.CONSTANTS.Z_INDEX_OVERLAY;
+    this.overlay.style.cursor = 'default';
+
+    // 그리기 모드 전용 스타일 적용
+    document.body.style.userSelect = 'none';
+    document.body.classList.add('sketch-drawing-mode');
+
+    // 도구모음 표시
+    if (this.toolbarContainer) {
+      this.toolbarContainer.style.display = 'block';
+    }
+
+    // DOM 렌더링 완료 후 설정
+    requestAnimationFrame(() => {
+      this.resizeCanvases();
+
+      // 크기가 0이면 강제로 다시 설정
+      if (this.overlay.offsetWidth === 0 || this.overlay.offsetHeight === 0) {
+        this.forceOverlaySize();
+      }
+
+      // 기본 도구 설정 및 활성화 표시
+      this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
+      this.updateToolbarButtons();
+    });
+
+    this.showNotification('🎨 그리기 모드 활성화', 'success');
+  }
+
+  deactivateDrawingMode() {
+    // 오버레이 비활성화
+    this.overlay.style.display = 'none';
+    this.overlay.style.pointerEvents = 'none';
+    this.overlay.style.cursor = 'default';
+
+    // 페이지 스타일 복구
+    document.body.style.userSelect = 'auto';
+    document.body.classList.remove('sketch-drawing-mode');
+
+    // 그리기 내용 초기화
+    this.clearCanvas();
+
+    // 마스킹된 텍스트가 있으면 모두 해제
+    if (this.maskedElements.length > 0) {
+      this.unmaskAllText();
+    }
+
+    this.showNotification('🧹 그리기 모드 비활성화', 'info');
+  }
+
   startDrawing(e) {
-    if (!this.isDrawingMode || e.target.closest('#sketch-toolbar-container')) return;
+    // 도구모음 클릭 시 무시
+    if (e.target.closest('#sketch-toolbar-container')) return;
 
-    this.isDrawing = true;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
+    // 그리기 모드인 경우
+    if (this.isDrawingMode) {
+      this.isDrawing = true;
+      this.startX = e.clientX;
+      this.startY = e.clientY;
 
-    // 캔버스 컨텍스트 설정 (유틸리티 메서드 사용)
-    this.setupCanvasContext(this.ctx);
+      // 캔버스 컨텍스트 설정
+      this.setupCanvasContext(this.ctx);
 
-    if (this.currentTool === 'pen') {
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.startX, this.startY);
+      if (this.currentTool === 'pen') {
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.startX, this.startY);
+      }
+      return;
+    }
+
+    // 영역 마스킹 모드인 경우
+    if (this.isAreaMaskingMode) {
+      this.isDrawing = true;
+      this.startX = e.clientX;
+      this.startY = e.clientY;
+
+      // 임시 캔버스 컨텍스트 설정
+      this.setupCanvasContext(this.tempCtx);
+      return;
     }
   }
 
   draw(e) {
-    if (!this.isDrawing || !this.isDrawingMode) return;
+    if (!this.isDrawing) return;
 
     const currentX = e.clientX;
     const currentY = e.clientY;
 
-    // 임시 캔버스 초기화 및 설정
-    this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
-    this.setupCanvasContext(this.tempCtx);
+    // 그리기 모드인 경우
+    if (this.isDrawingMode) {
+      // 임시 캔버스 초기화 및 설정
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+      this.setupCanvasContext(this.tempCtx);
 
-    // 도구별 그리기 처리
-    this.drawWithTool(currentX, currentY);
+      // 도구별 그리기 처리
+      this.drawWithTool(currentX, currentY);
+      return;
+    }
+
+    // 영역 마스킹 모드인 경우 - 항상 사각형
+    if (this.isAreaMaskingMode) {
+      // 임시 캔버스 초기화 및 설정
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+      this.setupCanvasContext(this.tempCtx);
+
+      // 사각형 그리기
+      this.tempCtx.strokeRect(
+        this.startX,
+        this.startY,
+        currentX - this.startX,
+        currentY - this.startY
+      );
+      return;
+    }
   }
 
   drawWithTool(currentX, currentY) {
@@ -407,15 +513,34 @@ class SketchMasking {
     if (!this.isDrawing) return;
 
     this.isDrawing = false;
+    const currentX = e.clientX;
+    const currentY = e.clientY;
 
-    // 임시 캔버스의 내용을 메인 캔버스로 복사 (펜 도구 제외)
-    if (this.currentTool !== 'pen') {
-      this.ctx.drawImage(this.tempCanvas, 0, 0);
-      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+    // 그리기 모드인 경우
+    if (this.isDrawingMode) {
+      // 임시 캔버스의 내용을 메인 캔버스로 복사 (펜 도구 제외)
+      if (this.currentTool !== 'pen') {
+        this.ctx.drawImage(this.tempCanvas, 0, 0);
+        this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+      }
+
+      // 실행 취소를 위한 상태 저장
+      this.saveCanvasState();
+      return;
     }
 
-    // 실행 취소를 위한 상태 저장
-    this.saveCanvasState();
+    // 영역 마스킹 모드인 경우
+    if (this.isAreaMaskingMode) {
+      const width = currentX - this.startX;
+      const height = currentY - this.startY;
+
+      // 임시 캔버스 초기화
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+
+      // 영역 마스킹 생성
+      this.createAreaMask(this.startX, this.startY, width, height);
+      return;
+    }
   }
 
   saveCanvasState() {
@@ -426,8 +551,10 @@ class SketchMasking {
 
 
   clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+    if (this.ctx && this.tempCtx) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+    }
     this.paths = [];
   }
 
@@ -475,44 +602,47 @@ class SketchMasking {
   }
 
   maskSelectedText() {
+    // 텍스트 마스킹은 다른 모드와 독립적으로 동작
     const selection = window.getSelection();
 
     // 선택된 텍스트가 있는 경우 - 마스킹 수행
-    if (selection.rangeCount > 0) {
+    if (selection.rangeCount > 0 && selection.toString().trim()) {
       const range = selection.getRangeAt(0);
       const selectedText = range.toString();
 
-      if (selectedText.trim()) {
-        // 각 문자를 *로 교체하되, 공백은 유지
-        const maskedText = selectedText.replace(/\S/g, '*');
+      // 각 문자를 *로 교체하되, 공백은 유지
+      const maskedText = selectedText.replace(/\S/g, '*');
 
-        try {
-          // 선택된 텍스트를 마스킹된 텍스트로 교체
-          const maskedNode = document.createTextNode(maskedText);
-          range.deleteContents();
-          range.insertNode(maskedNode);
+      try {
+        // 선택된 텍스트를 마스킹된 텍스트로 교체
+        const maskedNode = document.createTextNode(maskedText);
+        range.deleteContents();
+        range.insertNode(maskedNode);
 
-          // 마스킹된 요소 정보 저장
-          this.maskedElements.push({
-            node: maskedNode,
-            originalText: selectedText,
-            parentNode: maskedNode.parentNode
-          });
+        // 마스킹된 요소 정보 저장
+        this.maskedElements.push({
+          node: maskedNode,
+          originalText: selectedText,
+          parentNode: maskedNode.parentNode
+        });
 
-          // 선택 해제
-          selection.removeAllRanges();
+        // 선택 해제
+        selection.removeAllRanges();
 
-          this.showNotification("텍스트 마스킹 완료", 'success');
-        } catch (error) {
-          this.showNotification('이 영역의 텍스트는 마스킹할 수 없습니다', 'error');
-        }
+        this.showNotification("📝 텍스트 마스킹 완료", 'success');
+        return true;
+      } catch (error) {
+        this.showNotification('❌ 이 영역의 텍스트는 마스킹할 수 없습니다', 'error');
+        return false;
+      }
+    } else {
+      // 선택된 텍스트가 없는 경우 - 기존 마스킹 해제
+      if (this.maskedElements.length > 0) {
+        this.unmaskAllText();
+        return true;
       } else {
-        if (this.maskedElements.length > 0) {
-          this.unmaskAllText();
-          this.showNotification('마스킹이 해제되었습니다', 'info');
-        } else {
-          this.showNotification('마스킹할 텍스트를 선택해주세요', 'error');
-        }
+        this.showNotification('💡 마스킹할 텍스트를 선택해주세요', 'error');
+        return false;
       }
     }
   }
@@ -538,10 +668,134 @@ class SketchMasking {
     this.maskedElements = [];
 
     if (unmaskedCount > 0) {
-      this.showNotification(`마스킹 해제 완료(${unmaskedCount}개 영역)`, 'success');
-    } else {
-      this.showNotification('해제할 마스킹된 텍스트가 없습니다', 'info');
+      this.showNotification(`📝 마스킹 해제 완료 (${unmaskedCount}개 영역)`, 'success');
     }
+
+    return unmaskedCount;
+  }
+
+  toggleAreaMaskingMode() {
+    if (this.isAreaMaskingMode) {
+      // 영역 마스킹 모드 비활성화
+      this.deactivateAreaMaskingMode();
+      this.isAreaMaskingMode = false;
+    } else {
+      // 다른 모드들과 충돌 방지 - 그리기 모드 비활성화
+      if (this.isDrawingMode) {
+        this.deactivateDrawingMode();
+        this.isDrawingMode = false;
+      }
+
+      // 영역 마스킹 모드 활성화
+      this.activateAreaMaskingMode();
+      this.isAreaMaskingMode = true;
+    }
+  }
+
+  activateAreaMaskingMode() {
+    // 오버레이가 DOM에 있는지 확인
+    if (!document.body.contains(this.overlay)) {
+      document.body.appendChild(this.overlay);
+    }
+
+    // 오버레이 설정 (영역 마스킹 전용)
+    this.overlay.style.display = 'block';
+    this.overlay.style.pointerEvents = 'all';
+    this.overlay.style.zIndex = this.CONSTANTS.Z_INDEX_OVERLAY;
+    this.overlay.style.cursor = 'crosshair';
+
+    // 영역 마스킹 모드 전용 스타일 적용
+    document.body.style.userSelect = 'none';
+    document.body.classList.add('sketch-area-masking-mode');
+
+    // 영역 마스킹 모드에서는 도구모음 숨기기
+    if (this.toolbarContainer) {
+      this.toolbarContainer.style.display = 'none';
+    }
+
+    // DOM 렌더링 완료 후 크기 재설정
+    requestAnimationFrame(() => {
+      this.resizeCanvases();
+
+      // 크기가 0이면 강제로 다시 설정
+      if (this.overlay.offsetWidth === 0 || this.overlay.offsetHeight === 0) {
+        this.forceOverlaySize();
+      }
+    });
+
+    this.showNotification('🔍 영역 마스킹 모드 활성화', 'success');
+  }
+
+  deactivateAreaMaskingMode() {
+    // 오버레이 비활성화
+    this.overlay.style.display = 'none';
+    this.overlay.style.pointerEvents = 'none';
+    this.overlay.style.cursor = 'default';
+
+    // 페이지 스타일 복구
+    document.body.style.userSelect = 'auto';
+    document.body.classList.remove('sketch-area-masking-mode');
+
+    // 도구모음 다시 보이기 (필요한 경우에만)
+    if (this.toolbarContainer && !this.isDrawingMode) {
+      this.toolbarContainer.style.display = 'block';
+    }
+
+    // 캔버스 초기화
+    this.clearCanvas();
+
+    // 영역 마스킹이 있으면 모두 해제
+    if (this.areaMasks.length > 0) {
+      this.clearAllAreaMasks();
+    }
+
+    this.showNotification('🧹 영역 마스킹 모드 비활성화', 'info');
+  }
+
+  createAreaMask(x, y, width, height) {
+    // 절대값으로 변환하여 음수 너비/높이 처리
+    const normalizedX = Math.min(x, x + width);
+    const normalizedY = Math.min(y, y + height);
+    const normalizedWidth = Math.abs(width);
+    const normalizedHeight = Math.abs(height);
+
+    // 너무 작은 영역은 무시
+    if (normalizedWidth < 10 || normalizedHeight < 10) {
+      this.showNotification('너무 작은 영역입니다. 더 큰 영역을 선택해주세요.', 'error');
+      return;
+    }
+
+    // 마스킹 오버레이 div 생성
+    const maskOverlay = document.createElement('div');
+    maskOverlay.className = 'sketch-area-mask';
+    maskOverlay.style.cssText = `
+      left: ${normalizedX}px;
+      top: ${normalizedY}px;
+      width: ${normalizedWidth}px;
+      height: ${normalizedHeight}px;
+    `;
+
+    document.body.appendChild(maskOverlay);
+
+    // 마스킹 정보 저장
+    this.areaMasks.push({
+      element: maskOverlay,
+      x: normalizedX,
+      y: normalizedY,
+      width: normalizedWidth,
+      height: normalizedHeight
+    });
+
+    this.showNotification(`영역 마스킹 완료 (${this.areaMasks.length}개 영역)`, 'success');
+  }
+
+  clearAllAreaMasks() {
+    this.areaMasks.forEach(mask => {
+      if (mask.element && mask.element.parentNode) {
+        mask.element.parentNode.removeChild(mask.element);
+      }
+    });
+    this.areaMasks = [];
   }
 
   showNotification(message, type = 'info') {
@@ -588,6 +842,7 @@ if (!window.sketchMaskingInitialized) {
         // 전역 함수로도 접근 가능하게 설정
         window.toggleDrawingMode = () => window.sketchMaskingInstance?.toggleDrawingMode();
         window.maskSelectedText = () => window.sketchMaskingInstance?.maskSelectedText();
+        window.toggleAreaMaskingMode = () => window.sketchMaskingInstance?.toggleAreaMaskingMode();
       } catch (error) {
         console.error('SketchMasking 초기화 오류:', error);
       }

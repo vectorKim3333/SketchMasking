@@ -78,6 +78,15 @@
       background: #45a049;
     }
 
+    .button.active {
+      background: #4CAF50;
+      font-weight: bold;
+    }
+
+    .button.active:hover {
+      background: #45a049;
+    }
+
     .shortcut-info {
       font-size: 11px;
       opacity: 0.7;
@@ -133,9 +142,13 @@
     그리기 모드: 비활성
   </div>
 
+  <div id="area-masking-status" class="status inactive">
+    영역 마스킹 모드: 비활성
+  </div>
+
   <div class="section">
     <div class="section-title">🎨 그리기 도구</div>
-    <button id="toggle-drawing" class="button primary">그리기 모드 토글</button>
+    <button id="toggle-drawing" class="button">그리기 모드 토글</button>
     <div class="shortcut-info">단축키: Alt+1 (맥: Option+1)</div>
   </div>
 
@@ -143,6 +156,12 @@
     <div class="section-title">🔒 텍스트 마스킹</div>
     <button id="mask-text" class="button">텍스트 마스킹/해제 토글</button>
     <div class="shortcut-info">단축키: Alt+2 (맥: Option+2)</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🔍 영역 마스킹</div>
+    <button id="area-masking" class="button">영역 마스킹 모드 토글</button>
+    <div class="shortcut-info">단축키: Alt+3 (맥: Option+3)</div>
   </div>
 
   <div class="section">
@@ -163,16 +182,27 @@
         <li><strong>자동 해제:</strong> 그리기 모드 종료 시 모든 마스킹 해제</li>
       </ul>
 
+      <strong>🔍 영역 마스킹:</strong>
+      <ul>
+        <li><strong>활성화:</strong> Alt+3 (맥: Option+3)</li>
+        <li><strong>영역 선택:</strong> 마우스로 박스 드래그하여 영역 선택</li>
+        <li><strong>블러 적용:</strong> 선택한 영역에 자동으로 블러 마스킹 적용</li>
+        <li><strong>다중 선택:</strong> 여러 영역을 연속해서 마스킹 가능</li>
+        <li><strong>종료:</strong> Alt+3으로 모드 해제 및 마스킹 초기화</li>
+      </ul>
+
       <strong>💡 팁:</strong>
       <ul>
         <li>마스킹은 여러 개 영역에 적용 가능</li>
         <li>그리기 모드를 끄면 캔버스와 마스킹 모두 초기화</li>
+        <li>영역 마스킹 시 작은 영역은 무시됩니다</li>
+        <li>영역 마스킹과 그리기 모드는 동시에 사용 불가</li>
       </ul>
     </div>
   </div>
 
   <div class="footer">
-    v1.0.0 | SungHyeon
+    v1.1.0 | SungHyeon
   </div>
 
   <script src="popup.js"></script>

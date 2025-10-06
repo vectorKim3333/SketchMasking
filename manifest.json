@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SketchMasking",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "웹페이지에 그림을 그리고 텍스트를 마스킹하는 확장프로그램",
   "permissions": [
     "activeTab",
@@ -54,6 +54,13 @@
         "mac": "Alt+2"
       },
       "description": "선택된 텍스트 마스킹"
+    },
+    "toggle_area_masking": {
+      "suggested_key": {
+        "default": "Alt+3",
+        "mac": "Alt+3"
+      },
+      "description": "영역 마스킹 모드 토글"
     }
   }
 }
