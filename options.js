@@ -488,7 +488,51 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   settingsManager = new SettingsManager();
   await settingsManager.init();
+
+  // 커피 사주기 토글 기능 초기화
+  initCoffeeToggle();
 });
+
+/**
+ * 커피 사주기 토글 기능 초기화
+ */
+function initCoffeeToggle() {
+  const coffeeToggleBtn = document.getElementById('coffee-toggle-btn');
+  const coffeeQrContainer = document.getElementById('coffee-qr');
+
+  if (!coffeeToggleBtn || !coffeeQrContainer) {
+    console.warn('커피 사주기 요소를 찾을 수 없습니다.');
+    return;
+  }
+
+  let isQrVisible = false;
+
+  coffeeToggleBtn.addEventListener('click', function () {
+    if (isQrVisible) {
+      // QR 코드 숨기기
+      coffeeQrContainer.classList.remove('show');
+      coffeeToggleBtn.textContent = '☕ 개발자 커피 사주기';
+
+      // 애니메이션 완료 후 display none 설정
+      setTimeout(() => {
+        coffeeQrContainer.style.display = 'none';
+      }, 400);
+
+      isQrVisible = false;
+    } else {
+      // QR 코드 보이기
+      coffeeQrContainer.style.display = 'block';
+      coffeeToggleBtn.textContent = '❌ 닫기';
+
+      // 약간의 지연 후 애니메이션 클래스 추가
+      setTimeout(() => {
+        coffeeQrContainer.classList.add('show');
+      }, 10);
+
+      isQrVisible = true;
+    }
+  });
+}
 
 // 설정 관리자를 전역으로 노출 (디버깅 및 확장용)
 window.SketchMaskingSettings = {
