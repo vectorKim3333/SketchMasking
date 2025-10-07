@@ -320,31 +320,33 @@ class SettingsManager {
       <div class="section">
         <div class="section-title">🎨 그리기 모드 설정</div>
         
-        <div class="setting-item">
-          <label for="drawing-lineColor">선 색상</label>
-          <div class="color-input-wrapper">
-            <input type="color" id="drawing-lineColor" value="${this.getSetting('drawing', 'lineColor')}">
-            <span class="color-value">${this.getSetting('drawing', 'lineColor')}</span>
-          </div>
-        </div>
-        
-        <div class="setting-item">
-          <label for="drawing-lineWidth">선 굵기 (${this.getSetting('drawing', 'lineWidth')}px)</label>
-          <div class="range-input-wrapper">
-            <input type="range" id="drawing-lineWidth" min="1" max="10" value="${this.getSetting('drawing', 'lineWidth')}">
-            <div class="range-labels">
-              <span>1px</span>
-              <span>10px</span>
+        <div class="setting-items">
+          <div class="setting-item">
+            <label for="drawing-lineColor">선 색상</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="drawing-lineColor" value="${this.getSetting('drawing', 'lineColor')}">
+              <span class="color-value">${this.getSetting('drawing', 'lineColor')}</span>
             </div>
           </div>
-        </div>
-        
-        <div class="setting-item">
-          <label class="toggle-label">
-            <input type="checkbox" id="drawing-toolbarCollapsed" ${this.getSetting('drawing', 'toolbarCollapsed') ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-            도구 모음 기본 접힘 상태
-          </label>
+          
+          <div class="setting-item">
+            <label for="drawing-lineWidth">선 굵기 (${this.getSetting('drawing', 'lineWidth')}px)</label>
+            <div class="range-input-wrapper">
+              <input type="range" id="drawing-lineWidth" min="1" max="10" value="${this.getSetting('drawing', 'lineWidth')}">
+              <div class="range-labels">
+                <span>1px</span>
+                <span>10px</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <label class="toggle-label">
+              <input type="checkbox" id="drawing-toolbarCollapsed" ${this.getSetting('drawing', 'toolbarCollapsed') ? 'checked' : ''}>
+              <span class="toggle-slider"></span>
+              도구 모음 기본 접힘 상태
+            </label>
+          </div>
         </div>
       </div>
     `;

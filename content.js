@@ -32,6 +32,7 @@ class SketchMasking {
       { name: 'circle', icon: '○', title: '원' },
       { name: 'pen', icon: '✎', title: '펜' },
       { name: 'line', icon: '/', title: '선' },
+      { name: 'settings', icon: '⚙️', title: '설정' },
       { name: 'close', icon: '✕', title: '닫기' }
     ];
 
@@ -305,7 +306,7 @@ class SketchMasking {
   createToolButton(tool) {
     const button = document.createElement('button');
     const isActive = this.currentTool === tool.name;
-    const isActionButton = tool.name === 'close';
+    const isActionButton = tool.name === 'close' || tool.name === 'settings';
 
     button.innerHTML = tool.icon;
     button.title = tool.title;
@@ -330,6 +331,8 @@ class SketchMasking {
   handleToolButtonClick(toolName) {
     if (toolName === 'close') {
       this.toggleDrawingMode();
+    } else if (toolName === 'settings') {
+      this.openSettingsPage();
     } else {
       this.currentTool = toolName;
       this.updateToolbarButtons();
@@ -346,7 +349,7 @@ class SketchMasking {
       if (!toolName) return; // toolName이 없으면 건너뛰기
 
       const isActive = toolName === this.currentTool;
-      const isActionButton = toolName === 'close';
+      const isActionButton = toolName === 'close' || toolName === 'settings';
 
       // 기존 클래스들 명시적으로 제거
       button.classList.remove('active', 'action-button');
@@ -516,6 +519,21 @@ class SketchMasking {
     }
 
     this.showNotification('🧹 그리기 모드 비활성화', 'info');
+  }
+
+  /**
+   * 설정 페이지 열기
+   */
+  openSettingsPage() {
+    // Chrome extension의 옵션 페이지 열기
+    chrome.runtime.sendMessage({ command: 'open_options' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.warn('설정 페이지 열기 실패:', chrome.runtime.lastError.message);
+        this.showNotification('❌ 설정 페이지를 열 수 없습니다', 'error');
+      } else {
+        this.showNotification('⚙️ 설정 페이지를 열었습니다', 'success');
+      }
+    });
   }
 
   startDrawing(e) {

@@ -114,9 +114,19 @@
   font-weight: 600;
 }
 
-/* 액션 버튼 스타일 (닫기 등) */
+/* 액션 버튼 스타일 (닫기, 설정 등) */
 #sketch-toolbar button.action-button {
   background: var(--sketch-button-action);
+}
+
+/* 설정 버튼 특별 스타일 */
+#sketch-toolbar button[data-tool-name="settings"] {
+  background: rgba(158, 158, 158, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#sketch-toolbar button[data-tool-name="settings"]:hover {
+  background: rgba(180, 180, 180, 0.9);
 }
 
 /* 알림 스타일 */

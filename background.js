@@ -50,7 +50,19 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 // 메시지 수신 처리 (content script에서 background로 메시지 보낼 때)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  // 필요한 메시지 처리
+  // 설정 페이지 열기 명령 처리
+  if (request.command === 'open_options') {
+    chrome.runtime.openOptionsPage((success) => {
+      if (chrome.runtime.lastError) {
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+      } else {
+        sendResponse({ success: true });
+      }
+    });
+    return true; // 비동기 응답을 위해 true 반환
+  }
+
+  // 기타 메시지 처리
   return true; // 비동기 응답을 위해 true 반환
 });
 
