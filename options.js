@@ -343,8 +343,8 @@ class SettingsManager {
           <div class="setting-item">
             <label class="toggle-label">
               <input type="checkbox" id="drawing-toolbarCollapsed" ${this.getSetting('drawing', 'toolbarCollapsed') ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
               도구 모음 기본 접힘 상태
+              <span class="toggle-slider"></span>
             </label>
           </div>
         </div>
