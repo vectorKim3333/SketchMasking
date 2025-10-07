@@ -24,18 +24,42 @@ class SketchMaskingPopup {
     };
 
     // DOM 요소들
-    this.drawingStatus = document.getElementById('drawing-status');
-    this.areaMaskingStatus = document.getElementById('area-masking-status');
     this.toggleDrawingBtn = document.getElementById('toggle-drawing');
     this.maskTextBtn = document.getElementById('mask-text');
     this.areaMaskingBtn = document.getElementById('area-masking');
+    this.openOptionsBtn = document.getElementById('open-options');
 
     this.init();
   }
 
   async init() {
     this.setupEventListeners();
-    await this.updateStatus();
+    await this.syncState();
+  }
+
+  async syncState() {
+    try {
+      // content script로부터 현재 상태 가져오기
+      const currentStatus = await this.getCurrentContentScriptStatus();
+
+      if (currentStatus) {
+        this.state.isDrawingMode = currentStatus.isDrawingMode;
+        this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
+      } else {
+        // content script와 통신 실패 시 기본값으로 초기화
+        this.state.isDrawingMode = false;
+        this.state.isAreaMaskingMode = false;
+      }
+
+      // UI 업데이트
+      this.updateButtonUI();
+    } catch (error) {
+      console.error('상태 동기화 실패:', error);
+      // 오류 발생 시 기본값으로 초기화
+      this.state.isDrawingMode = false;
+      this.state.isAreaMaskingMode = false;
+      this.updateButtonUI();
+    }
   }
 
   setupEventListeners() {
@@ -62,6 +86,11 @@ class SketchMaskingPopup {
     // 영역 마스킹 버튼
     this.areaMaskingBtn.addEventListener('click', () => {
       this.handleAreaMaskingToggle();
+    });
+
+    // 설정 페이지 열기 버튼
+    this.openOptionsBtn.addEventListener('click', () => {
+      this.openOptionsPage();
     });
 
     // 키보드 단축키 처리
@@ -101,8 +130,7 @@ class SketchMaskingPopup {
         this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
       }
 
-      this.updateDrawingModeUI();
-      this.updateAreaMaskingUI();
+      this.updateButtonUI();
       this.showUIFeedback(this.toggleDrawingBtn, '그리기 모드가 토글되었습니다.', 'success');
     } catch (error) {
       this.showUIFeedback(this.toggleDrawingBtn, '그리기 모드 토글에 실패했습니다.', 'error');
@@ -121,12 +149,16 @@ class SketchMaskingPopup {
         this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
       }
 
-      this.updateDrawingModeUI();
-      this.updateAreaMaskingUI();
+      this.updateButtonUI();
       this.showUIFeedback(this.areaMaskingBtn, '영역 마스킹 모드가 토글되었습니다.', 'success');
     } catch (error) {
       this.showUIFeedback(this.areaMaskingBtn, '영역 마스킹 모드 토글에 실패했습니다.', 'error');
     }
+  }
+
+  // 설정 페이지 열기
+  openOptionsPage() {
+    chrome.runtime.openOptionsPage();
   }
 
   async executeCommand(command) {
@@ -177,32 +209,6 @@ class SketchMaskingPopup {
     }
   }
 
-  async updateStatus() {
-    try {
-      // content script로부터 현재 상태 가져오기
-      const currentStatus = await this.getCurrentContentScriptStatus();
-
-      if (currentStatus) {
-        this.state.isDrawingMode = currentStatus.isDrawingMode;
-        this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
-      } else {
-        // content script와 통신 실패 시 기본값으로 초기화
-        this.state.isDrawingMode = false;
-        this.state.isAreaMaskingMode = false;
-      }
-
-      this.updateDrawingModeUI();
-      this.updateAreaMaskingUI();
-    } catch (error) {
-      console.error('상태 업데이트 실패:', error);
-      // 오류 발생 시 기본값으로 초기화
-      this.state.isDrawingMode = false;
-      this.state.isAreaMaskingMode = false;
-      this.updateDrawingModeUI();
-      this.updateAreaMaskingUI();
-    }
-  }
-
   async getCurrentContentScriptStatus() {
     try {
       const tab = await this.getCurrentTab();
@@ -218,29 +224,21 @@ class SketchMaskingPopup {
     }
   }
 
-  updateDrawingModeUI() {
+  updateButtonUI() {
+    // 그리기 모드 버튼 UI 업데이트
     if (this.state.isDrawingMode) {
-      this.drawingStatus.textContent = '그리기 모드: 활성';
-      this.drawingStatus.className = 'status active';
       this.toggleDrawingBtn.textContent = '그리기 모드 비활성화';
       this.toggleDrawingBtn.classList.add('active');
     } else {
-      this.drawingStatus.textContent = '그리기 모드: 비활성';
-      this.drawingStatus.className = 'status inactive';
       this.toggleDrawingBtn.textContent = '그리기 모드 활성화';
       this.toggleDrawingBtn.classList.remove('active');
     }
-  }
 
-  updateAreaMaskingUI() {
+    // 영역 마스킹 모드 버튼 UI 업데이트
     if (this.state.isAreaMaskingMode) {
-      this.areaMaskingStatus.textContent = '영역 마스킹 모드: 활성';
-      this.areaMaskingStatus.className = 'status active';
       this.areaMaskingBtn.textContent = '영역 마스킹 비활성화';
       this.areaMaskingBtn.classList.add('active');
     } else {
-      this.areaMaskingStatus.textContent = '영역 마스킹 모드: 비활성';
-      this.areaMaskingStatus.className = 'status inactive';
       this.areaMaskingBtn.textContent = '영역 마스킹 활성화';
       this.areaMaskingBtn.classList.remove('active');
     }

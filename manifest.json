@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "SketchMasking",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "웹페이지에 그림을 그리고 텍스트를 마스킹하는 확장프로그램",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -39,6 +40,10 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "commands": {
     "toggle_drawing_mode": {

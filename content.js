@@ -1,10 +1,23 @@
 class SketchMasking {
   constructor() {
-    // 상수 정의
+    // 기본 설정값 (settings로부터 오버라이드됨)
+    this.settings = {
+      drawing: {
+        lineColor: '#FF0000',
+        lineWidth: 2,
+        toolbarCollapsed: false
+      },
+      textMasking: {
+        maskingChar: '*'
+      },
+      areaBlur: {
+        blurIntensity: 10
+      }
+    };
+
+    // 상수 정의 (설정값으로 오버라이드될 수 있음)
     this.CONSTANTS = {
       DEFAULT_TOOL: 'rectangle',
-      CANVAS_STROKE_COLOR: '#FF0000',
-      CANVAS_STROKE_WIDTH: 2,
       MIN_SCREEN_WIDTH: 1920,
       MIN_SCREEN_HEIGHT: 1080,
       Z_INDEX_OVERLAY: 2147483647,
@@ -27,7 +40,6 @@ class SketchMasking {
     this.isAreaMaskingMode = false;
     this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
     this.isDrawing = false;
-    this.toolbarCollapsed = false;
 
     // 좌표
     this.startX = 0;
@@ -51,15 +63,115 @@ class SketchMasking {
     this.init();
   }
 
-  init() {
+  async init() {
+    // 설정 로드
+    await this.loadSettings();
+
     this.createOverlay();
     this.setupEventListeners();
     this.setupKeyboardShortcuts();
+    this.setupSettingsListener();
 
     // 초기 도구 버튼 상태 설정 (requestAnimationFrame 사용으로 성능 개선)
     requestAnimationFrame(() => {
       this.updateToolbarButtons();
     });
+  }
+
+  /**
+   * 설정 로드
+   */
+  async loadSettings() {
+    try {
+      const result = await new Promise((resolve, reject) => {
+        chrome.storage.local.get(['sketchMaskingSettings'], (result) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+
+      // 저장된 설정이 있으면 기본값과 병합
+      if (result.sketchMaskingSettings && typeof result.sketchMaskingSettings === 'object') {
+        this.settings = this.mergeSettings(this.settings, result.sketchMaskingSettings);
+      }
+      // 저장된 설정이 없으면 기본값 그대로 사용 (이미 constructor에서 설정됨)
+
+      console.log('설정 로드 완료:', this.settings);
+    } catch (error) {
+      console.warn('설정 로드 실패, 기본값 사용:', error);
+      // 오류 발생 시 기본값 그대로 사용 (이미 constructor에서 설정됨)
+    }
+  }
+
+  /**
+   * 설정 병합 (깊은 병합, 안전성 강화)
+   */
+  mergeSettings(defaultSettings, userSettings) {
+    const merged = JSON.parse(JSON.stringify(defaultSettings));
+
+    // null이나 undefined 체크
+    if (!userSettings || typeof userSettings !== 'object') {
+      return merged;
+    }
+
+    Object.keys(userSettings).forEach(category => {
+      if (merged[category] &&
+        userSettings[category] &&
+        typeof userSettings[category] === 'object') {
+        Object.keys(userSettings[category]).forEach(key => {
+          // 기본값에 해당 키가 존재하는지 확인
+          if (merged[category].hasOwnProperty(key)) {
+            const userValue = userSettings[category][key];
+            // 타입이 일치하는지 확인
+            if (typeof userValue === typeof merged[category][key]) {
+              merged[category][key] = userValue;
+            }
+          }
+        });
+      }
+    });
+
+    return merged;
+  }
+
+  /**
+   * 설정 변경 리스너 설정
+   */
+  setupSettingsListener() {
+    // storage 변경 이벤트 리스너
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'local' && changes.sketchMaskingSettings) {
+        console.log('설정 변경 감지, 업데이트 중...');
+        this.loadSettings().then(() => {
+          this.applySettings();
+        });
+      }
+    });
+  }
+
+  /**
+   * 설정 적용
+   */
+  applySettings() {
+    // 그리기 설정 적용
+    if (this.ctx) {
+      this.setupCanvasContext(this.ctx);
+    }
+    if (this.tempCtx) {
+      this.setupCanvasContext(this.tempCtx);
+    }
+
+    // 도구바 접힘 상태 적용
+    if (this.toolbar && this.isDrawingMode) {
+      if (this.settings.drawing.toolbarCollapsed !== (this.toolbar.classList.contains('collapsed'))) {
+        this.toggleToolbar();
+      }
+    }
+
+    console.log('설정 적용 완료');
   }
 
   // 유틸리티 메서드들
@@ -78,8 +190,8 @@ class SketchMasking {
   }
 
   setupCanvasContext(ctx) {
-    ctx.strokeStyle = this.CONSTANTS.CANVAS_STROKE_COLOR;
-    ctx.lineWidth = this.CONSTANTS.CANVAS_STROKE_WIDTH;
+    ctx.strokeStyle = this.settings.drawing.lineColor;
+    ctx.lineWidth = this.settings.drawing.lineWidth;
     ctx.lineCap = 'round';
   }
 
@@ -286,7 +398,8 @@ class SketchMasking {
             isDrawingMode: this.isDrawingMode,
             isAreaMaskingMode: this.isAreaMaskingMode,
             currentTool: this.currentTool,
-            currentMode: this.getCurrentMode()
+            currentMode: this.getCurrentMode(),
+            settings: this.settings
           }
         });
         return true; // 비동기 응답을 위해 true 반환
@@ -368,6 +481,17 @@ class SketchMasking {
       // 기본 도구 설정 및 활성화 표시
       this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
       this.updateToolbarButtons();
+
+      // 설정에 따라 도구바 초기 접힘 상태 적용
+      if (this.settings.drawing.toolbarCollapsed) {
+        this.toolbar.classList.add('collapsed');
+        this.toggleButton.innerHTML = '▶';
+        this.toggleButton.title = '도구모음 펴기';
+      } else {
+        this.toolbar.classList.remove('collapsed');
+        this.toggleButton.innerHTML = '◀';
+        this.toggleButton.title = '도구모음 접기';
+      }
     });
 
     this.showNotification('🎨 그리기 모드 활성화', 'success');
@@ -610,8 +734,8 @@ class SketchMasking {
       const range = selection.getRangeAt(0);
       const selectedText = range.toString();
 
-      // 각 문자를 *로 교체하되, 공백은 유지
-      const maskedText = selectedText.replace(/\S/g, '*');
+      // 각 문자를 설정된 마스킹 문자로 교체하되, 공백은 유지
+      const maskedText = selectedText.replace(/\S/g, this.settings.textMasking.maskingChar);
 
       try {
         // 선택된 텍스트를 마스킹된 텍스트로 교체
@@ -769,10 +893,18 @@ class SketchMasking {
     const maskOverlay = document.createElement('div');
     maskOverlay.className = 'sketch-area-mask';
     maskOverlay.style.cssText = `
+      position: fixed;
       left: ${normalizedX}px;
       top: ${normalizedY}px;
       width: ${normalizedWidth}px;
       height: ${normalizedHeight}px;
+      background-color: rgba(128, 128, 128, 0);
+      backdrop-filter: blur(${this.settings.areaBlur.blurIntensity}px);
+      -webkit-backdrop-filter: blur(${this.settings.areaBlur.blurIntensity}px);
+      border: none;
+      box-sizing: border-box;
+      pointer-events: none;
+      z-index: ${this.CONSTANTS.Z_INDEX_OVERLAY - 1};
     `;
 
     document.body.appendChild(maskOverlay);

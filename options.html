@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SketchMasking 설정</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      opacity: 0.8;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: opacity 0.3s ease;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .setting-item {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .setting-item label {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 토글 스위치 스타일 */
+    .toggle-label {
+      display: flex !important;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 16px !important;
+    }
+
+    .toggle-label input[type="checkbox"] {
+      display: none;
+    }
+
+    .toggle-slider {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 26px;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-label input[type="checkbox"]:checked+.toggle-slider {
+      background: #4CAF50;
+      border-color: #45a049;
+    }
+
+    .toggle-label input[type="checkbox"]:checked+.toggle-slider::before {
+      transform: translateX(26px);
+    }
+
+    /* 컬러 피커 스타일 */
+    .color-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .color-input-wrapper input[type="color"] {
+      width: 50px;
+      height: 35px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: none;
+    }
+
+    .color-value {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 범위 슬라이더 스타일 */
+    .range-input-wrapper {
+      position: relative;
+    }
+
+    .range-input-wrapper input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .range-input-wrapper input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .range-input-wrapper input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4CAF50;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    /* 문자 입력 스타일 */
+    .char-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .char-input-wrapper input[type="text"] {
+      width: 60px;
+      height: 40px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: white;
+      outline: none;
+    }
+
+    .char-input-wrapper input[type="text"]:focus {
+      border-color: #4CAF50;
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+
+    .char-preview {
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 블러 미리보기 스타일 */
+    .blur-preview {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .blur-sample {
+      width: 200px;
+      height: 60px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blur-sample::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: inherit;
+    }
+
+    /* 설정 노트 스타일 */
+    .setting-note {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      border-radius: 6px;
+      color: #ffc107;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      opacity: 0.6;
+      font-size: 14px;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .logo {
+        font-size: 28px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+    }
+
+    /* 초기화 섹션 스타일 */
+    .reset-section {
+      border: 2px solid rgba(255, 193, 7, 0.3) !important;
+      background: rgba(255, 193, 7, 0.05) !important;
+    }
+
+    .reset-description {
+      font-size: 14px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+
+    .reset-description ul {
+      margin: 12px 0;
+      padding-left: 20px;
+    }
+
+    .reset-description li {
+      margin: 8px 0;
+      font-size: 13px;
+    }
+
+    .reset-button {
+      width: 100%;
+      padding: 14px 20px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
+    }
+
+    .reset-button:hover {
+      background: #e64a19;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+    }
+
+    .reset-button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
+    }
+
+    .reset-warning {
+      text-align: center;
+      font-size: 12px;
+      color: #ff9800;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">⚙️ SketchMasking 설정</div>
+      <div class="subtitle">확장 프로그램 환경 설정</div>
+    </div>
+
+    <div id="settings-container">
+      <!-- 설정 UI가 여기에 동적으로 생성됩니다 -->
+    </div>
+
+    <div class="footer">
+      SketchMasking v1.2.0 | SungHyeon
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+
+</html>

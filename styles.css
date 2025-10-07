@@ -157,7 +157,7 @@
 
 /* 툴바 접기/펴기 상태 */
 #sketch-toolbar.collapsed {
-  width: 36px;
+  width: fit-content;
   gap: 0;
 }
 

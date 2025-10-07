@@ -94,24 +94,6 @@
       margin-top: 5px;
     }
 
-    .status {
-      padding: 8px;
-      border-radius: 5px;
-      text-align: center;
-      font-size: 12px;
-      margin-bottom: 10px;
-    }
-
-    .status.active {
-      background: rgba(76, 175, 80, 0.3);
-      border: 1px solid #4CAF50;
-    }
-
-    .status.inactive {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
     .feature-list {
       font-size: 12px;
       opacity: 0.8;
@@ -138,14 +120,6 @@
     <div class="subtitle">웹페이지 그리기 & 텍스트 마스킹</div>
   </div>
 
-  <div id="drawing-status" class="status inactive">
-    그리기 모드: 비활성
-  </div>
-
-  <div id="area-masking-status" class="status inactive">
-    영역 마스킹 모드: 비활성
-  </div>
-
   <div class="section">
     <div class="section-title">🎨 그리기 도구</div>
     <button id="toggle-drawing" class="button">그리기 모드 토글</button>
@@ -162,6 +136,11 @@
     <div class="section-title">🔍 영역 마스킹</div>
     <button id="area-masking" class="button">영역 마스킹 모드 토글</button>
     <div class="shortcut-info">단축키: Alt+3 (맥: Option+3)</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">⚙️ 설정</div>
+    <button id="open-options" class="button">설정 페이지 열기</button>
   </div>
 
   <div class="section">
@@ -202,7 +181,7 @@
   </div>
 
   <div class="footer">
-    v1.1.0 | SungHyeon
+    v1.2.0 | SungHyeon
   </div>
 
   <script src="popup.js"></script>
