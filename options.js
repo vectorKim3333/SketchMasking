@@ -83,7 +83,6 @@ class SettingsManager {
         await this.saveSettings();
       }
 
-      console.log('설정 로드 완료:', this.settings);
     } catch (error) {
       console.warn('설정 로드 실패, 기본값 사용:', error);
       this.settings = getDefaultSettings();

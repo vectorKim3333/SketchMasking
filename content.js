@@ -100,7 +100,6 @@ class SketchMasking {
       }
       // 저장된 설정이 없으면 기본값 그대로 사용 (이미 constructor에서 설정됨)
 
-      console.log('설정 로드 완료:', this.settings);
     } catch (error) {
       console.warn('설정 로드 실패, 기본값 사용:', error);
       // 오류 발생 시 기본값 그대로 사용 (이미 constructor에서 설정됨)
