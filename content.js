@@ -26,14 +26,14 @@ class SketchMasking {
       TOOLBAR_UPDATE_DELAY: 10
     };
 
-    // 도구 설정
+    // 도구 설정 (다국어 키 사용)
     this.TOOLS = [
-      { name: 'rectangle', icon: '▢', title: '박스' },
-      { name: 'circle', icon: '○', title: '원' },
-      { name: 'pen', icon: '✎', title: '펜' },
-      { name: 'line', icon: '/', title: '선' },
-      { name: 'settings', icon: '⚙️', title: '설정' },
-      { name: 'close', icon: '✕', title: '닫기' }
+      { name: 'rectangle', icon: '▢', titleKey: 'tool_box' },
+      { name: 'circle', icon: '○', titleKey: 'tool_circle' },
+      { name: 'pen', icon: '✎', titleKey: 'tool_pen' },
+      { name: 'line', icon: '/', titleKey: 'tool_line' },
+      { name: 'settings', icon: '⚙️', titleKey: 'tool_settings' },
+      { name: 'close', icon: '✕', titleKey: 'tool_close' }
     ];
 
     // 상태 변수들
@@ -285,7 +285,7 @@ class SketchMasking {
     this.toggleButton = document.createElement('button');
     this.toggleButton.id = 'sketch-toggle-btn';
     this.toggleButton.innerHTML = '◀';
-    this.toggleButton.title = '도구모음 접기/펴기';
+    this.toggleButton.title = chrome.i18n.getMessage('toolbar_collapse');
 
     this.toggleButton.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -308,7 +308,7 @@ class SketchMasking {
     const isActionButton = tool.name === 'close' || tool.name === 'settings';
 
     button.innerHTML = tool.icon;
-    button.title = tool.title;
+    button.title = chrome.i18n.getMessage(tool.titleKey);
     button.dataset.toolName = tool.name;
 
     // CSS 클래스 적용
@@ -368,11 +368,11 @@ class SketchMasking {
     if (this.toolbarCollapsed) {
       this.toolbar.classList.add('collapsed');
       this.toggleButton.innerHTML = '▶';
-      this.toggleButton.title = '도구모음 펴기';
+      this.toggleButton.title = chrome.i18n.getMessage('toolbar_expand');
     } else {
       this.toolbar.classList.remove('collapsed');
       this.toggleButton.innerHTML = '◀';
-      this.toggleButton.title = '도구모음 접기';
+      this.toggleButton.title = chrome.i18n.getMessage('toolbar_collapse');
     }
   }
 
@@ -488,15 +488,15 @@ class SketchMasking {
       if (this.settings.drawing.toolbarCollapsed) {
         this.toolbar.classList.add('collapsed');
         this.toggleButton.innerHTML = '▶';
-        this.toggleButton.title = '도구모음 펴기';
+        this.toggleButton.title = chrome.i18n.getMessage('toolbar_expand');
       } else {
         this.toolbar.classList.remove('collapsed');
         this.toggleButton.innerHTML = '◀';
-        this.toggleButton.title = '도구모음 접기';
+        this.toggleButton.title = chrome.i18n.getMessage('toolbar_collapse');
       }
     });
 
-    this.showNotification('🎨 그리기 모드 활성화', 'success');
+    this.showNotification(chrome.i18n.getMessage('notify_drawing_mode_on'), 'success');
   }
 
   deactivateDrawingMode() {
@@ -517,7 +517,7 @@ class SketchMasking {
       this.unmaskAllText();
     }
 
-    this.showNotification('🧹 그리기 모드 비활성화', 'info');
+    this.showNotification(chrome.i18n.getMessage('notify_drawing_mode_off'), 'info');
   }
 
   /**
@@ -528,9 +528,9 @@ class SketchMasking {
     chrome.runtime.sendMessage({ command: 'open_options' }, (response) => {
       if (chrome.runtime.lastError) {
         console.warn('설정 페이지 열기 실패:', chrome.runtime.lastError.message);
-        this.showNotification('❌ 설정 페이지를 열 수 없습니다', 'error');
+        this.showNotification(chrome.i18n.getMessage('notify_settings_error'), 'error');
       } else {
-        this.showNotification('⚙️ 설정 페이지를 열었습니다', 'success');
+        this.showNotification(chrome.i18n.getMessage('notify_settings_opened'), 'success');
       }
     });
   }
@@ -770,10 +770,10 @@ class SketchMasking {
         // 선택 해제
         selection.removeAllRanges();
 
-        this.showNotification("📝 텍스트 마스킹 완료", 'success');
+        this.showNotification(chrome.i18n.getMessage('notify_text_masking_done'), 'success');
         return true;
       } catch (error) {
-        this.showNotification('❌ 이 영역의 텍스트는 마스킹할 수 없습니다', 'error');
+        this.showNotification(chrome.i18n.getMessage('notify_text_masking_error'), 'error');
         return false;
       }
     } else {
@@ -782,7 +782,7 @@ class SketchMasking {
         this.unmaskAllText();
         return true;
       } else {
-        this.showNotification('💡 마스킹할 텍스트를 선택해주세요', 'error');
+        this.showNotification(chrome.i18n.getMessage('notify_text_masking_select'), 'error');
         return false;
       }
     }
@@ -809,7 +809,7 @@ class SketchMasking {
     this.maskedElements = [];
 
     if (unmaskedCount > 0) {
-      this.showNotification(`📝 마스킹 해제 완료 (${unmaskedCount}개 영역)`, 'success');
+      this.showNotification(chrome.i18n.getMessage('notify_text_masking_unmasked', unmaskedCount.toString()), 'success');
     }
 
     return unmaskedCount;
@@ -864,7 +864,7 @@ class SketchMasking {
       }
     });
 
-    this.showNotification('🔍 영역 마스킹 모드 활성화', 'success');
+    this.showNotification(chrome.i18n.getMessage('notify_area_masking_on'), 'success');
   }
 
   deactivateAreaMaskingMode() {
@@ -890,7 +890,7 @@ class SketchMasking {
       this.clearAllAreaMasks();
     }
 
-    this.showNotification('🧹 영역 마스킹 모드 비활성화', 'info');
+    this.showNotification(chrome.i18n.getMessage('notify_area_masking_off'), 'info');
   }
 
   createAreaMask(x, y, width, height) {
@@ -902,7 +902,7 @@ class SketchMasking {
 
     // 너무 작은 영역은 무시
     if (normalizedWidth < 10 || normalizedHeight < 10) {
-      this.showNotification('너무 작은 영역입니다. 더 큰 영역을 선택해주세요.', 'error');
+      this.showNotification(chrome.i18n.getMessage('notify_area_too_small'), 'error');
       return;
     }
 
@@ -935,7 +935,7 @@ class SketchMasking {
       height: normalizedHeight
     });
 
-    this.showNotification(`영역 마스킹 완료 (${this.areaMasks.length}개 영역)`, 'success');
+    this.showNotification(chrome.i18n.getMessage('notify_area_masked', this.areaMasks.length.toString()), 'success');
   }
 
   clearAllAreaMasks() {

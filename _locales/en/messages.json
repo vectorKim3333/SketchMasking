@@ -1,0 +1,293 @@
+{
+  "extension_name": {
+    "message": "SketchMasking"
+  },
+  "extension_description": {
+    "message": "Web sketch & masking tool - Draw, mask text & blur areas to protect privacy before screenshot"
+  },
+  "toggle_drawing_description": {
+    "message": "Toggle drawing mode"
+  },
+  "mask_text_description": {
+    "message": "Mask selected text"
+  },
+  "area_masking_description": {
+    "message": "Toggle area masking mode"
+  },
+  "popup_title": {
+    "message": "Web Drawing & Text Masking"
+  },
+  "open_settings": {
+    "message": "Open Settings"
+  },
+  "drawing_tools": {
+    "message": "Drawing Tools"
+  },
+  "toggle_drawing_mode": {
+    "message": "Toggle Drawing Mode"
+  },
+  "text_masking": {
+    "message": "Text Masking"
+  },
+  "toggle_text_masking": {
+    "message": "Toggle Text Masking"
+  },
+  "area_masking": {
+    "message": "Area Masking"
+  },
+  "toggle_area_masking": {
+    "message": "Toggle Area Masking Mode"
+  },
+  "usage_guide": {
+    "message": "Usage Guide"
+  },
+  "drawing_features": {
+    "message": "Drawing Features"
+  },
+  "drawing_features_activate": {
+    "message": "Activate"
+  },
+  "drawing_features_tool_selection": {
+    "message": "Tool Selection"
+  },
+  "drawing_features_drawing": {
+    "message": "Drawing"
+  },
+  "drawing_features_exit": {
+    "message": "Exit"
+  },
+  "text_masking_features": {
+    "message": "Text Masking"
+  },
+  "text_masking_masking": {
+    "message": "Masking"
+  },
+  "text_masking_release": {
+    "message": "Release"
+  },
+  "text_masking_auto_release": {
+    "message": "Auto Release"
+  },
+  "area_masking_features": {
+    "message": "Area Masking"
+  },
+  "area_masking_activate": {
+    "message": "Activate"
+  },
+  "area_masking_select": {
+    "message": "Select Area"
+  },
+  "area_masking_blur": {
+    "message": "Apply Blur"
+  },
+  "area_masking_multiple": {
+    "message": "Multiple Selection"
+  },
+  "area_masking_exit": {
+    "message": "Exit"
+  },
+  "tips": {
+    "message": "Tips"
+  },
+  "tips_1": {
+    "message": "You can apply masking to multiple areas"
+  },
+  "tips_2": {
+    "message": "Turning off drawing mode will reset both canvas and masking"
+  },
+  "tips_3": {
+    "message": "Small areas are ignored during area masking"
+  },
+  "tips_4": {
+    "message": "Area masking and drawing mode cannot be used simultaneously"
+  },
+  "shortcut": {
+    "message": "Shortcut"
+  },
+  "shortcut_mac": {
+    "message": "Mac: Option+$1"
+  },
+  "shortcut_windows": {
+    "message": "Shortcut: Alt+$1"
+  },
+  "drawing_mode_enable": {
+    "message": "Enable Drawing Mode"
+  },
+  "drawing_mode_disable": {
+    "message": "Disable Drawing Mode"
+  },
+  "area_masking_enable": {
+    "message": "Enable Area Masking"
+  },
+  "area_masking_disable": {
+    "message": "Disable Area Masking"
+  },
+  "settings_title": {
+    "message": "SketchMasking Settings"
+  },
+  "settings_subtitle": {
+    "message": "Extension Configuration"
+  },
+  "language_settings": {
+    "message": "Language Settings"
+  },
+  "select_language": {
+    "message": "Select Display Language"
+  },
+  "language_auto": {
+    "message": "Auto Detect (Browser Language)"
+  },
+  "language_korean": {
+    "message": "Korean"
+  },
+  "language_english": {
+    "message": "English"
+  },
+  "language_note": {
+    "message": "💡 Selecting 'Auto Detect' will automatically set the language based on your browser language."
+  },
+  "language_changed_success": {
+    "message": "✅ Language changed successfully!"
+  },
+  "language_changed_error": {
+    "message": "❌ Failed to change language."
+  },
+  "drawing_settings": {
+    "message": "Drawing Mode Settings"
+  },
+  "line_color": {
+    "message": "Line Color"
+  },
+  "line_width": {
+    "message": "Line Width"
+  },
+  "toolbar_collapsed": {
+    "message": "Toolbar Collapsed by Default"
+  },
+  "text_masking_settings": {
+    "message": "Text Masking Settings"
+  },
+  "masking_char": {
+    "message": "Masking Character"
+  },
+  "masking_preview": {
+    "message": "Preview"
+  },
+  "area_blur_settings": {
+    "message": "Area Blur Settings"
+  },
+  "blur_intensity": {
+    "message": "Blur Intensity"
+  },
+  "blur_test": {
+    "message": "Blur Test"
+  },
+  "reset_settings": {
+    "message": "Reset Settings"
+  },
+  "reset_all": {
+    "message": "Reset All"
+  },
+  "reset_warning": {
+    "message": "⚠️ This action cannot be undone."
+  },
+  "reset_description": {
+    "message": "Reset all settings to default values"
+  },
+  "reset_description_drawing": {
+    "message": "Drawing Mode: Red color, 2px width, toolbar expanded"
+  },
+  "reset_description_text": {
+    "message": "Text Masking: * character"
+  },
+  "reset_description_blur": {
+    "message": "Area Blur: 10px intensity"
+  },
+  "reset_description_language": {
+    "message": "Language: Auto Detect"
+  },
+  "reset_success": {
+    "message": "✅ All settings have been reset!"
+  },
+  "reset_error": {
+    "message": "❌ Failed to reset settings."
+  },
+  "coffee_support": {
+    "message": "Buy Developer a Coffee"
+  },
+  "coffee_close": {
+    "message": "Close"
+  },
+  "coffee_title": {
+    "message": "Buy the developer a coffee"
+  },
+  "coffee_message": {
+    "message": "Your small support means a lot!"
+  },
+  "coffee_feedback": {
+    "message": "🐛 Bug reports, feature requests, feedback, etc."
+  },
+  "coffee_contact": {
+    "message": "Feel free to contact us"
+  },
+  "notify_drawing_mode_on": {
+    "message": "🎨 Drawing Mode Activated"
+  },
+  "notify_drawing_mode_off": {
+    "message": "🧹 Drawing Mode Deactivated"
+  },
+  "notify_text_masking_done": {
+    "message": "📝 Text Masking Complete"
+  },
+  "notify_text_masking_error": {
+    "message": "❌ Unable to mask text in this area"
+  },
+  "notify_text_masking_select": {
+    "message": "💡 Please select text to mask"
+  },
+  "notify_text_masking_unmasked": {
+    "message": "📝 Masking Removed ($1 areas)"
+  },
+  "notify_area_masking_on": {
+    "message": "🔍 Area Masking Mode Activated"
+  },
+  "notify_area_masking_off": {
+    "message": "🧹 Area Masking Mode Deactivated"
+  },
+  "notify_area_too_small": {
+    "message": "Area too small. Please select a larger area."
+  },
+  "notify_area_masked": {
+    "message": "Area Masking Complete ($1 areas)"
+  },
+  "notify_settings_opened": {
+    "message": "⚙️ Settings Page Opened"
+  },
+  "notify_settings_error": {
+    "message": "❌ Unable to open settings page"
+  },
+  "toolbar_collapse": {
+    "message": "Collapse Toolbar"
+  },
+  "toolbar_expand": {
+    "message": "Expand Toolbar"
+  },
+  "tool_box": {
+    "message": "Box"
+  },
+  "tool_circle": {
+    "message": "Circle"
+  },
+  "tool_pen": {
+    "message": "Pen"
+  },
+  "tool_line": {
+    "message": "Line"
+  },
+  "tool_settings": {
+    "message": "Settings"
+  },
+  "tool_close": {
+    "message": "Close"
+  }
+}

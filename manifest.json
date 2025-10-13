@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "SketchMasking",
-  "version": "1.2.0",
-  "description": "웹페이지에 그림을 그리고 텍스트를 마스킹하는 확장프로그램",
+  "name": "__MSG_extension_name__",
+  "version": "1.3.0",
+  "description": "__MSG_extension_description__",
+  "default_locale": "ko",
   "permissions": [
     "activeTab",
     "scripting",
@@ -10,7 +11,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "SketchMasking",
+    "default_title": "__MSG_extension_name__",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -51,21 +52,31 @@
         "default": "Alt+1",
         "mac": "Alt+1"
       },
-      "description": "그리기 모드 토글"
+      "description": "__MSG_toggle_drawing_description__"
     },
     "mask_selected_text": {
       "suggested_key": {
         "default": "Alt+2",
         "mac": "Alt+2"
       },
-      "description": "선택된 텍스트 마스킹"
+      "description": "__MSG_mask_text_description__"
     },
     "toggle_area_masking": {
       "suggested_key": {
         "default": "Alt+3",
         "mac": "Alt+3"
       },
-      "description": "영역 마스킹 모드 토글"
+      "description": "__MSG_area_masking_description__"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "_locales/*/messages.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

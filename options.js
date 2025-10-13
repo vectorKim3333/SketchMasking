@@ -4,6 +4,11 @@
  * 설정 스키마 정의
  */
 const SETTINGS_SCHEMA = {
+  // 언어 설정
+  language: {
+    selectedLanguage: { type: 'string', default: 'auto', options: ['auto', 'ko', 'en'] }
+  },
+
   // 그리기 모드 설정
   drawing: {
     lineColor: { type: 'color', default: '#FF0000', min: null, max: null },
@@ -44,6 +49,7 @@ function getDefaultSettings() {
 class SettingsManager {
   constructor() {
     this.settings = {};
+    this.i18n = new I18nManager();
   }
 
   /**
@@ -51,8 +57,15 @@ class SettingsManager {
    */
   async init() {
     try {
+      // 다국어 초기화
+      await this.i18n.init();
+
       await this.loadSettings();
       this.renderUI();
+
+      // 페이지 현지화
+      this.i18n.localizePage();
+
       console.log('설정 관리자가 초기화되었습니다.');
     } catch (error) {
       console.error('설정 관리자 초기화 실패:', error);
@@ -204,16 +217,23 @@ class SettingsManager {
         });
       });
 
+      // 언어를 기본값(auto)으로 재설정하고 메시지 다시 로드
+      await this.i18n.determineLanguage();
+      await this.i18n.loadMessages(this.i18n.currentLanguage);
+
       // UI 재렌더링
       this.renderUI();
 
+      // 페이지 현지화
+      this.i18n.localizePage();
+
       // 성공 알림
-      this.showResetNotification('✅ 모든 설정이 초기화되었습니다!', 'success');
+      this.showResetNotification(this.i18n.getMessage('reset_success'), 'success');
 
       console.log('설정 초기화 완료');
     } catch (error) {
       console.error('설정 초기화 실패:', error);
-      this.showResetNotification('❌ 설정 초기화에 실패했습니다.', 'error');
+      this.showResetNotification(this.i18n.getMessage('reset_error'), 'error');
     }
   }
 
@@ -281,9 +301,18 @@ class SettingsManager {
           value >= schema.min &&
           value <= schema.max;
       case 'string':
-        return typeof value === 'string' &&
-          value.length >= schema.min &&
-          value.length <= schema.max;
+        // options 배열이 있는 경우 해당 배열에 값이 포함되어 있는지 확인
+        if (schema.options && Array.isArray(schema.options)) {
+          return typeof value === 'string' && schema.options.includes(value);
+        }
+        // min/max가 있는 경우 문자열 길이 검증
+        if (schema.min !== undefined && schema.max !== undefined) {
+          return typeof value === 'string' &&
+            value.length >= schema.min &&
+            value.length <= schema.max;
+        }
+        // 기본적으로 string 타입인지만 확인
+        return typeof value === 'string';
       case 'color':
         return /^#[0-9A-F]{6}$/i.test(value);
       default:
@@ -310,18 +339,46 @@ class SettingsManager {
       ${this.generateDrawingSettings()}
       ${this.generateTextMaskingSettings()}
       ${this.generateAreaBlurSettings()}
+      ${this.generateLanguageSettings()}
       ${this.generateResetSection()}
+    `;
+  }
+
+  /**
+   * 언어 설정 HTML 생성
+   */
+  generateLanguageSettings() {
+    const currentLanguage = this.getSetting('language', 'selectedLanguage') || 'auto';
+
+    return `
+      <div class="section">
+        <div class="section-title">🌐 <span data-i18n="language_settings">언어 설정</span></div>
+        
+        <div class="setting-item">
+          <label for="language-selectedLanguage" data-i18n="select_language">표시 언어 선택</label>
+          <div class="language-selector-wrapper">
+            <select id="language-selectedLanguage" class="language-selector">
+              <option value="auto" ${currentLanguage === 'auto' ? 'selected' : ''} data-i18n="language_auto">자동 감지 (브라우저 언어)</option>
+              <option value="ko" ${currentLanguage === 'ko' ? 'selected' : ''} data-i18n="language_korean">한국어</option>
+              <option value="en" ${currentLanguage === 'en' ? 'selected' : ''} data-i18n="language_english">영어</option>
+            </select>
+          </div>
+          <div class="setting-note" data-i18n="language_note">
+            💡 '자동 감지'를 선택하면 브라우저 언어에 따라 자동으로 언어가 설정됩니다.
+          </div>
+        </div>
+      </div>
     `;
   }
 
   generateDrawingSettings() {
     return `
       <div class="section">
-        <div class="section-title">🎨 그리기 모드 설정</div>
+        <div class="section-title">🎨 <span data-i18n="drawing_settings">그리기 모드 설정</span></div>
         
         <div class="setting-items">
           <div class="setting-item">
-            <label for="drawing-lineColor">선 색상</label>
+            <label for="drawing-lineColor" data-i18n="line_color">선 색상</label>
             <div class="color-input-wrapper">
               <input type="color" id="drawing-lineColor" value="${this.getSetting('drawing', 'lineColor')}">
               <span class="color-value">${this.getSetting('drawing', 'lineColor')}</span>
@@ -329,7 +386,7 @@ class SettingsManager {
           </div>
           
           <div class="setting-item">
-            <label for="drawing-lineWidth">선 굵기 (${this.getSetting('drawing', 'lineWidth')}px)</label>
+            <label for="drawing-lineWidth"><span data-i18n="line_width">선 굵기</span> (${this.getSetting('drawing', 'lineWidth')}px)</label>
             <div class="range-input-wrapper">
               <input type="range" id="drawing-lineWidth" min="1" max="10" value="${this.getSetting('drawing', 'lineWidth')}">
               <div class="range-labels">
@@ -342,7 +399,7 @@ class SettingsManager {
           <div class="setting-item">
             <label class="toggle-label">
               <input type="checkbox" id="drawing-toolbarCollapsed" ${this.getSetting('drawing', 'toolbarCollapsed') ? 'checked' : ''}>
-              도구 모음 기본 접힘 상태
+              <span data-i18n="toolbar_collapsed">도구 모음 기본 접힘 상태</span>
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -354,13 +411,13 @@ class SettingsManager {
   generateTextMaskingSettings() {
     return `
       <div class="section">
-        <div class="section-title">🔒 텍스트 마스킹 설정</div>
+        <div class="section-title">🔒 <span data-i18n="text_masking_settings">텍스트 마스킹 설정</span></div>
         
         <div class="setting-item">
-          <label for="textMasking-maskingChar">마스킹 문자</label>
+          <label for="textMasking-maskingChar" data-i18n="masking_char">마스킹 문자</label>
           <div class="char-input-wrapper">
             <input type="text" id="textMasking-maskingChar" value="${this.getSetting('textMasking', 'maskingChar')}" maxlength="1" placeholder="*">
-            <span class="char-preview">미리보기: ${this.getSetting('textMasking', 'maskingChar').repeat(5)}</span>
+            <span class="char-preview"><span data-i18n="masking_preview">미리보기</span>: ${this.getSetting('textMasking', 'maskingChar').repeat(5)}</span>
           </div>
         </div>
       </div>
@@ -370,10 +427,10 @@ class SettingsManager {
   generateAreaBlurSettings() {
     return `
       <div class="section">
-        <div class="section-title">🔍 영역 블러 설정</div>
+        <div class="section-title">🔍 <span data-i18n="area_blur_settings">영역 블러 설정</span></div>
         
         <div class="setting-item">
-          <label for="areaBlur-blurIntensity">블러 강도 (${this.getSetting('areaBlur', 'blurIntensity')}px)</label>
+          <label for="areaBlur-blurIntensity"><span data-i18n="blur_intensity">블러 강도</span> (${this.getSetting('areaBlur', 'blurIntensity')}px)</label>
           <div class="range-input-wrapper">
             <input type="range" id="areaBlur-blurIntensity" min="1" max="10" value="${this.getSetting('areaBlur', 'blurIntensity')}">
             <div class="range-labels">
@@ -383,7 +440,7 @@ class SettingsManager {
           </div>
           <div class="blur-preview">
             <div class="blur-sample" style="backdrop-filter: blur(${this.getSetting('areaBlur', 'blurIntensity')}px); font-size: 30px;">
-              블러 테스트
+              <span data-i18n="blur_test">블러 테스트</span>
             </div>
           </div>
         </div>
@@ -394,23 +451,24 @@ class SettingsManager {
   generateResetSection() {
     return `
       <div class="section reset-section">
-        <div class="section-title">🔄 설정 초기화</div>
+        <div class="section-title">🔄 <span data-i18n="reset_settings">설정 초기화</span></div>
         
         <div class="setting-item">
           <div class="reset-description">
-            모든 설정을 기본값으로 되돌립니다:
+            <span data-i18n="reset_description">모든 설정을 기본값으로 되돌립니다</span>:
             <ul>
-              <li><strong>그리기 모드:</strong> 빨간색, 2px 굵기, 도구바 펼침</li>
-              <li><strong>텍스트 마스킹:</strong> * 문자</li>
-              <li><strong>영역 블러:</strong> 10px 강도</li>
+              <li><span data-i18n="reset_description_drawing">그리기 모드: 빨간색, 2px 굵기, 도구바 펼침</span></li>
+              <li><span data-i18n="reset_description_text">텍스트 마스킹: * 문자</span></li>
+              <li><span data-i18n="reset_description_blur">영역 블러: 10px 강도</span></li>
+              <li><span data-i18n="reset_description_language">언어 설정: 자동 감지</span></li>
             </ul>
           </div>
           
           <button id="reset-all-settings" class="reset-button">
-            🔄 전체 초기화
+            🔄 <span data-i18n="reset_all">전체 초기화</span>
           </button>
           
-          <div class="reset-warning">
+          <div class="reset-warning" data-i18n="reset_warning">
             ⚠️ 이 작업은 되돌릴 수 없습니다.
           </div>
         </div>
@@ -422,6 +480,34 @@ class SettingsManager {
    * UI 이벤트 바인딩
    */
   bindUIEvents() {
+    // 언어 변경 이벤트
+    document.getElementById('language-selectedLanguage')?.addEventListener('change', async (e) => {
+      const selectedLanguage = e.target.value;
+
+      try {
+        await this.setSetting('language', 'selectedLanguage', selectedLanguage);
+
+        // 언어 변경 즉시 반영
+        await this.i18n.determineLanguage();
+
+        // 새로운 언어로 메시지 다시 로드
+        await this.i18n.loadMessages(this.i18n.currentLanguage);
+
+        // 설정 UI 재생성 (언어가 바뀐 상태로)
+        this.renderUI();
+
+        // 페이지 현지화
+        this.i18n.localizePage();
+
+        // 성공 알림
+        this.showResetNotification(this.i18n.getMessage('language_changed_success'), 'success');
+
+      } catch (error) {
+        console.error('언어 설정 변경 실패:', error);
+        this.showResetNotification(this.i18n.getMessage('language_changed_error'), 'error');
+      }
+    });
+
     // 그리기 설정
     document.getElementById('drawing-lineColor')?.addEventListener('change', (e) => {
       this.setSetting('drawing', 'lineColor', e.target.value);
@@ -431,7 +517,14 @@ class SettingsManager {
     document.getElementById('drawing-lineWidth')?.addEventListener('input', (e) => {
       const value = parseInt(e.target.value);
       this.setSetting('drawing', 'lineWidth', value);
-      document.querySelector('label[for="drawing-lineWidth"]').textContent = `선 굵기 (${value}px)`;
+      const label = document.querySelector('label[for="drawing-lineWidth"]');
+      if (label) {
+        const span = label.querySelector('span');
+        if (span) {
+          label.innerHTML = `<span data-i18n="line_width">${span.textContent}</span> (${value}px)`;
+          this.i18n.localizePage();
+        }
+      }
     });
 
     document.getElementById('drawing-toolbarCollapsed')?.addEventListener('change', (e) => {
@@ -443,14 +536,28 @@ class SettingsManager {
       const value = e.target.value.slice(-1) || '*'; // 마지막 문자만 사용
       e.target.value = value;
       this.setSetting('textMasking', 'maskingChar', value);
-      document.querySelector('.char-preview').textContent = `미리보기: ${value.repeat(5)}`;
+      const preview = document.querySelector('.char-preview');
+      if (preview) {
+        const span = preview.querySelector('span');
+        if (span) {
+          preview.innerHTML = `<span data-i18n="masking_preview">${span.textContent}</span>: ${value.repeat(5)}`;
+          this.i18n.localizePage();
+        }
+      }
     });
 
     // 영역 블러 설정
     document.getElementById('areaBlur-blurIntensity')?.addEventListener('input', (e) => {
       const value = parseInt(e.target.value);
       this.setSetting('areaBlur', 'blurIntensity', value);
-      document.querySelector('label[for="areaBlur-blurIntensity"]').textContent = `블러 강도 (${value}px)`;
+      const label = document.querySelector('label[for="areaBlur-blurIntensity"]');
+      if (label) {
+        const span = label.querySelector('span');
+        if (span) {
+          label.innerHTML = `<span data-i18n="blur_intensity">${span.textContent}</span> (${value}px)`;
+          this.i18n.localizePage();
+        }
+      }
 
       const blurSample = document.querySelector('.blur-sample');
       if (blurSample) {

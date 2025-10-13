@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-i18n-title="extension_name">
 
 <head>
   <meta charset="UTF-8">
@@ -116,73 +116,74 @@
 
 <body>
   <div class="header">
-    <div class="logo">🎨 SketchMasking</div>
-    <div class="subtitle">웹페이지 그리기 & 텍스트 마스킹</div>
+    <div class="logo">🎨 <span data-i18n="extension_name">SketchMasking</span></div>
+    <div class="subtitle" data-i18n="popup_title">웹페이지 그리기 & 텍스트 마스킹</div>
   </div>
 
-  <button id="open-options" class="button">⚙️ 설정 페이지 열기</button>
+  <button id="open-options" class="button">⚙️ <span data-i18n="open_settings">설정 페이지 열기</span></button>
 
   <div class="section">
-    <div class="section-title">🎨 그리기 도구</div>
-    <button id="toggle-drawing" class="button">그리기 모드 토글</button>
+    <div class="section-title">🎨 <span data-i18n="drawing_tools">그리기 도구</span></div>
+    <button id="toggle-drawing" class="button" data-i18n="toggle_drawing_mode">그리기 모드 토글</button>
     <div class="shortcut-info">단축키: Alt+1 (맥: Option+1)</div>
   </div>
 
   <div class="section">
-    <div class="section-title">🔒 텍스트 마스킹</div>
-    <button id="mask-text" class="button">텍스트 마스킹/해제 토글</button>
+    <div class="section-title">🔒 <span data-i18n="text_masking">텍스트 마스킹</span></div>
+    <button id="mask-text" class="button" data-i18n="toggle_text_masking">텍스트 마스킹/해제 토글</button>
     <div class="shortcut-info">단축키: Alt+2 (맥: Option+2)</div>
   </div>
 
   <div class="section">
-    <div class="section-title">🔍 영역 마스킹</div>
-    <button id="area-masking" class="button">영역 마스킹 모드 토글</button>
+    <div class="section-title">🔍 <span data-i18n="area_masking">영역 마스킹</span></div>
+    <button id="area-masking" class="button" data-i18n="toggle_area_masking">영역 마스킹 모드 토글</button>
     <div class="shortcut-info">단축키: Alt+3 (맥: Option+3)</div>
   </div>
 
 
 
   <div class="section">
-    <div class="section-title">📋 사용 방법</div>
+    <div class="section-title">📋 <span data-i18n="usage_guide">사용 방법</span></div>
     <div class="feature-list">
-      <strong>🎨 그리기 기능:</strong>
+      <strong>🎨 <span data-i18n="drawing_features">그리기 기능</span>:</strong>
       <ul>
-        <li><strong>활성화:</strong> Alt+1 (맥: Option+1)</li>
-        <li><strong>도구 선택:</strong> 박스(▢), 원(○), 펜(✎), 선(/)</li>
-        <li><strong>그리기:</strong> 마우스로 드래그하여 그리기</li>
-        <li><strong>종료:</strong> 도구바의 ✕ 버튼 또는 단축키</li>
+        <li><strong data-i18n="drawing_features_activate">활성화</strong>: Alt+1 (맥: Option+1)</li>
+        <li><strong data-i18n="drawing_features_tool_selection">도구 선택</strong>: 박스(▢), 원(○), 펜(✎), 선(/)</li>
+        <li><strong data-i18n="drawing_features_drawing">그리기</strong>: 마우스로 드래그하여 그리기</li>
+        <li><strong data-i18n="drawing_features_exit">종료</strong>: 도구바의 ✕ 버튼 또는 단축키</li>
       </ul>
 
-      <strong>🔒 텍스트 마스킹:</strong>
+      <strong>🔒 <span data-i18n="text_masking_features">텍스트 마스킹</span>:</strong>
       <ul>
-        <li><strong>마스킹:</strong> 텍스트 선택 → Alt+2로 ***로 변환</li>
-        <li><strong>해제:</strong> 선택 없이 Alt+2로 원본 복구</li>
-        <li><strong>자동 해제:</strong> 그리기 모드 종료 시 모든 마스킹 해제</li>
+        <li><strong data-i18n="text_masking_masking">마스킹</strong>: 텍스트 선택 → Alt+2로 ***로 변환</li>
+        <li><strong data-i18n="text_masking_release">해제</strong>: 선택 없이 Alt+2로 원본 복구</li>
+        <li><strong data-i18n="text_masking_auto_release">자동 해제</strong>: 그리기 모드 종료 시 모든 마스킹 해제</li>
       </ul>
 
-      <strong>🔍 영역 마스킹:</strong>
+      <strong>🔍 <span data-i18n="area_masking_features">영역 마스킹</span>:</strong>
       <ul>
-        <li><strong>활성화:</strong> Alt+3 (맥: Option+3)</li>
-        <li><strong>영역 선택:</strong> 마우스로 박스 드래그하여 영역 선택</li>
-        <li><strong>블러 적용:</strong> 선택한 영역에 자동으로 블러 마스킹 적용</li>
-        <li><strong>다중 선택:</strong> 여러 영역을 연속해서 마스킹 가능</li>
-        <li><strong>종료:</strong> Alt+3으로 모드 해제 및 마스킹 초기화</li>
+        <li><strong data-i18n="area_masking_activate">활성화</strong>: Alt+3 (맥: Option+3)</li>
+        <li><strong data-i18n="area_masking_select">영역 선택</strong>: 마우스로 박스 드래그하여 영역 선택</li>
+        <li><strong data-i18n="area_masking_blur">블러 적용</strong>: 선택한 영역에 자동으로 블러 마스킹 적용</li>
+        <li><strong data-i18n="area_masking_multiple">다중 선택</strong>: 여러 영역을 연속해서 마스킹 가능</li>
+        <li><strong data-i18n="area_masking_exit">종료</strong>: Alt+3으로 모드 해제 및 마스킹 초기화</li>
       </ul>
 
-      <strong>💡 팁:</strong>
+      <strong>💡 <span data-i18n="tips">팁</span>:</strong>
       <ul>
-        <li>마스킹은 여러 개 영역에 적용 가능</li>
-        <li>그리기 모드를 끄면 캔버스와 마스킹 모두 초기화</li>
-        <li>영역 마스킹 시 작은 영역은 무시됩니다</li>
-        <li>영역 마스킹과 그리기 모드는 동시에 사용 불가</li>
+        <li data-i18n="tips_1">마스킹은 여러 개 영역에 적용 가능</li>
+        <li data-i18n="tips_2">그리기 모드를 끄면 캔버스와 마스킹 모두 초기화</li>
+        <li data-i18n="tips_3">영역 마스킹 시 작은 영역은 무시됩니다</li>
+        <li data-i18n="tips_4">영역 마스킹과 그리기 모드는 동시에 사용 불가</li>
       </ul>
     </div>
   </div>
 
   <div class="footer">
-    v1.2.0 | SungHyeon
+    v1.3.0 | SungHyeon
   </div>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 

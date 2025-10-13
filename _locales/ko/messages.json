@@ -1,0 +1,293 @@
+{
+  "extension_name": {
+    "message": "SketchMasking"
+  },
+  "extension_description": {
+    "message": "웹 스케치 마스킹 도구 - 그리기, 텍스트 마스킹, 영역 블러로 개인정보 보호 후 캡쳐"
+  },
+  "toggle_drawing_description": {
+    "message": "그리기 모드 토글"
+  },
+  "mask_text_description": {
+    "message": "선택된 텍스트 마스킹"
+  },
+  "area_masking_description": {
+    "message": "영역 마스킹 모드 토글"
+  },
+  "popup_title": {
+    "message": "웹페이지 그리기 & 텍스트 마스킹"
+  },
+  "open_settings": {
+    "message": "설정 페이지 열기"
+  },
+  "drawing_tools": {
+    "message": "그리기 도구"
+  },
+  "toggle_drawing_mode": {
+    "message": "그리기 모드 토글"
+  },
+  "text_masking": {
+    "message": "텍스트 마스킹"
+  },
+  "toggle_text_masking": {
+    "message": "텍스트 마스킹/해제 토글"
+  },
+  "area_masking": {
+    "message": "영역 마스킹"
+  },
+  "toggle_area_masking": {
+    "message": "영역 마스킹 모드 토글"
+  },
+  "usage_guide": {
+    "message": "사용 방법"
+  },
+  "drawing_features": {
+    "message": "그리기 기능"
+  },
+  "drawing_features_activate": {
+    "message": "활성화"
+  },
+  "drawing_features_tool_selection": {
+    "message": "도구 선택"
+  },
+  "drawing_features_drawing": {
+    "message": "그리기"
+  },
+  "drawing_features_exit": {
+    "message": "종료"
+  },
+  "text_masking_features": {
+    "message": "텍스트 마스킹"
+  },
+  "text_masking_masking": {
+    "message": "마스킹"
+  },
+  "text_masking_release": {
+    "message": "해제"
+  },
+  "text_masking_auto_release": {
+    "message": "자동 해제"
+  },
+  "area_masking_features": {
+    "message": "영역 마스킹"
+  },
+  "area_masking_activate": {
+    "message": "활성화"
+  },
+  "area_masking_select": {
+    "message": "영역 선택"
+  },
+  "area_masking_blur": {
+    "message": "블러 적용"
+  },
+  "area_masking_multiple": {
+    "message": "다중 선택"
+  },
+  "area_masking_exit": {
+    "message": "종료"
+  },
+  "tips": {
+    "message": "팁"
+  },
+  "tips_1": {
+    "message": "마스킹은 여러 개 영역에 적용 가능"
+  },
+  "tips_2": {
+    "message": "그리기 모드를 끄면 캔버스와 마스킹 모두 초기화"
+  },
+  "tips_3": {
+    "message": "영역 마스킹 시 작은 영역은 무시됩니다"
+  },
+  "tips_4": {
+    "message": "영역 마스킹과 그리기 모드는 동시에 사용 불가"
+  },
+  "shortcut": {
+    "message": "단축키"
+  },
+  "shortcut_mac": {
+    "message": "맥: Option+$1"
+  },
+  "shortcut_windows": {
+    "message": "단축키: Alt+$1"
+  },
+  "drawing_mode_enable": {
+    "message": "그리기 모드 활성화"
+  },
+  "drawing_mode_disable": {
+    "message": "그리기 모드 비활성화"
+  },
+  "area_masking_enable": {
+    "message": "영역 마스킹 활성화"
+  },
+  "area_masking_disable": {
+    "message": "영역 마스킹 비활성화"
+  },
+  "settings_title": {
+    "message": "SketchMasking 설정"
+  },
+  "settings_subtitle": {
+    "message": "확장 프로그램 환경 설정"
+  },
+  "language_settings": {
+    "message": "언어 설정"
+  },
+  "select_language": {
+    "message": "표시 언어 선택"
+  },
+  "language_auto": {
+    "message": "자동 감지 (브라우저 언어)"
+  },
+  "language_korean": {
+    "message": "한국어"
+  },
+  "language_english": {
+    "message": "영어"
+  },
+  "language_note": {
+    "message": "💡 '자동 감지'를 선택하면 브라우저 언어에 따라 자동으로 언어가 설정됩니다."
+  },
+  "language_changed_success": {
+    "message": "✅ 언어가 성공적으로 변경되었습니다!"
+  },
+  "language_changed_error": {
+    "message": "❌ 언어 변경에 실패했습니다."
+  },
+  "drawing_settings": {
+    "message": "그리기 모드 설정"
+  },
+  "line_color": {
+    "message": "선 색상"
+  },
+  "line_width": {
+    "message": "선 굵기"
+  },
+  "toolbar_collapsed": {
+    "message": "도구 모음 기본 접힘 상태"
+  },
+  "text_masking_settings": {
+    "message": "텍스트 마스킹 설정"
+  },
+  "masking_char": {
+    "message": "마스킹 문자"
+  },
+  "masking_preview": {
+    "message": "미리보기"
+  },
+  "area_blur_settings": {
+    "message": "영역 블러 설정"
+  },
+  "blur_intensity": {
+    "message": "블러 강도"
+  },
+  "blur_test": {
+    "message": "블러 테스트"
+  },
+  "reset_settings": {
+    "message": "설정 초기화"
+  },
+  "reset_all": {
+    "message": "전체 초기화"
+  },
+  "reset_warning": {
+    "message": "⚠️ 이 작업은 되돌릴 수 없습니다."
+  },
+  "reset_description": {
+    "message": "모든 설정을 기본값으로 되돌립니다"
+  },
+  "reset_description_drawing": {
+    "message": "그리기 모드: 빨간색, 2px 굵기, 도구바 펼침"
+  },
+  "reset_description_text": {
+    "message": "텍스트 마스킹: * 문자"
+  },
+  "reset_description_blur": {
+    "message": "영역 블러: 10px 강도"
+  },
+  "reset_description_language": {
+    "message": "언어 설정: 자동 감지"
+  },
+  "reset_success": {
+    "message": "✅ 모든 설정이 초기화되었습니다!"
+  },
+  "reset_error": {
+    "message": "❌ 설정 초기화에 실패했습니다."
+  },
+  "coffee_support": {
+    "message": "개발자 커피 사주기"
+  },
+  "coffee_close": {
+    "message": "닫기"
+  },
+  "coffee_title": {
+    "message": "개발자에게 커피 한 잔 사주세요"
+  },
+  "coffee_message": {
+    "message": "여러분의 작은 후원이 큰 힘이 됩니다!"
+  },
+  "coffee_feedback": {
+    "message": "🐛 버그 제보, 신규 기능 제안, 불편한 점 등등"
+  },
+  "coffee_contact": {
+    "message": "편하게 제보해주세요"
+  },
+  "notify_drawing_mode_on": {
+    "message": "🎨 그리기 모드 활성화"
+  },
+  "notify_drawing_mode_off": {
+    "message": "🧹 그리기 모드 비활성화"
+  },
+  "notify_text_masking_done": {
+    "message": "📝 텍스트 마스킹 완료"
+  },
+  "notify_text_masking_error": {
+    "message": "❌ 이 영역의 텍스트는 마스킹할 수 없습니다"
+  },
+  "notify_text_masking_select": {
+    "message": "💡 마스킹할 텍스트를 선택해주세요"
+  },
+  "notify_text_masking_unmasked": {
+    "message": "📝 마스킹 해제 완료 ($1개 영역)"
+  },
+  "notify_area_masking_on": {
+    "message": "🔍 영역 마스킹 모드 활성화"
+  },
+  "notify_area_masking_off": {
+    "message": "🧹 영역 마스킹 모드 비활성화"
+  },
+  "notify_area_too_small": {
+    "message": "너무 작은 영역입니다. 더 큰 영역을 선택해주세요."
+  },
+  "notify_area_masked": {
+    "message": "영역 마스킹 완료 ($1개 영역)"
+  },
+  "notify_settings_opened": {
+    "message": "⚙️ 설정 페이지를 열었습니다"
+  },
+  "notify_settings_error": {
+    "message": "❌ 설정 페이지를 열 수 없습니다"
+  },
+  "toolbar_collapse": {
+    "message": "도구모음 접기"
+  },
+  "toolbar_expand": {
+    "message": "도구모음 펴기"
+  },
+  "tool_box": {
+    "message": "박스"
+  },
+  "tool_circle": {
+    "message": "원"
+  },
+  "tool_pen": {
+    "message": "펜"
+  },
+  "tool_line": {
+    "message": "선"
+  },
+  "tool_settings": {
+    "message": "설정"
+  },
+  "tool_close": {
+    "message": "닫기"
+  }
+}

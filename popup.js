@@ -23,6 +23,9 @@ class SketchMaskingPopup {
       isAreaMaskingMode: false
     };
 
+    // 다국어 관리자
+    this.i18n = new I18nManager();
+
     // DOM 요소들
     this.toggleDrawingBtn = document.getElementById('toggle-drawing');
     this.maskTextBtn = document.getElementById('mask-text');
@@ -33,6 +36,10 @@ class SketchMaskingPopup {
   }
 
   async init() {
+    // 다국어 초기화
+    await this.i18n.init();
+    this.i18n.localizePage();
+
     this.setupEventListeners();
     await this.syncState();
   }
@@ -54,7 +61,8 @@ class SketchMaskingPopup {
       // UI 업데이트
       this.updateButtonUI();
     } catch (error) {
-      console.error('상태 동기화 실패:', error);
+      // 예상치 못한 에러만 로그 출력
+      console.warn('상태 동기화 중 문제 발생:', error.message);
       // 오류 발생 시 기본값으로 초기화
       this.state.isDrawingMode = false;
       this.state.isAreaMaskingMode = false;
@@ -164,6 +172,11 @@ class SketchMaskingPopup {
   async executeCommand(command) {
     const tab = await this.getCurrentTab();
 
+    // content script를 실행할 수 없는 페이지인 경우 에러 발생
+    if (!this.canInjectContentScript(tab.url)) {
+      throw new Error('이 페이지에서는 확장 프로그램을 사용할 수 없습니다.');
+    }
+
     try {
       await chrome.tabs.sendMessage(tab.id, { command });
     } catch (error) {
@@ -181,6 +194,27 @@ class SketchMaskingPopup {
     }
 
     return tab;
+  }
+
+  /**
+   * 현재 탭에서 content script를 실행할 수 있는지 확인
+   */
+  canInjectContentScript(url) {
+    if (!url) return false;
+
+    // content script를 실행할 수 없는 URL 패턴
+    const restrictedPatterns = [
+      'chrome://',
+      'chrome-extension://',
+      'about:',
+      'edge://',
+      'opera://',
+      'vivaldi://',
+      'brave://',
+      'chrome.google.com/webstore'
+    ];
+
+    return !restrictedPatterns.some(pattern => url.startsWith(pattern));
   }
 
   async reloadContentScript(tabId) {
@@ -212,6 +246,12 @@ class SketchMaskingPopup {
   async getCurrentContentScriptStatus() {
     try {
       const tab = await this.getCurrentTab();
+
+      // content script를 실행할 수 없는 페이지인 경우 조용히 null 반환
+      if (!this.canInjectContentScript(tab.url)) {
+        return null;
+      }
+
       const response = await chrome.tabs.sendMessage(tab.id, { command: 'get_status' });
 
       if (response && response.status === 'success') {
@@ -219,7 +259,15 @@ class SketchMaskingPopup {
       }
       return null;
     } catch (error) {
-      console.warn('content script 상태 조회 실패:', error);
+      // 특정 에러는 무시 (정상적인 상황)
+      const isConnectionError = error.message?.includes('Could not establish connection') ||
+        error.message?.includes('Receiving end does not exist');
+
+      if (!isConnectionError) {
+        // 예상치 못한 에러만 로그 출력
+        console.warn('content script 상태 조회 실패:', error);
+      }
+
       return null;
     }
   }
@@ -227,19 +275,19 @@ class SketchMaskingPopup {
   updateButtonUI() {
     // 그리기 모드 버튼 UI 업데이트
     if (this.state.isDrawingMode) {
-      this.toggleDrawingBtn.textContent = '그리기 모드 비활성화';
+      this.toggleDrawingBtn.textContent = this.i18n.getMessage('drawing_mode_disable');
       this.toggleDrawingBtn.classList.add('active');
     } else {
-      this.toggleDrawingBtn.textContent = '그리기 모드 활성화';
+      this.toggleDrawingBtn.textContent = this.i18n.getMessage('drawing_mode_enable');
       this.toggleDrawingBtn.classList.remove('active');
     }
 
     // 영역 마스킹 모드 버튼 UI 업데이트
     if (this.state.isAreaMaskingMode) {
-      this.areaMaskingBtn.textContent = '영역 마스킹 비활성화';
+      this.areaMaskingBtn.textContent = this.i18n.getMessage('area_masking_disable');
       this.areaMaskingBtn.classList.add('active');
     } else {
-      this.areaMaskingBtn.textContent = '영역 마스킹 활성화';
+      this.areaMaskingBtn.textContent = this.i18n.getMessage('area_masking_enable');
       this.areaMaskingBtn.classList.remove('active');
     }
   }
