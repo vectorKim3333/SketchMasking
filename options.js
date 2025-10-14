@@ -372,6 +372,9 @@ class SettingsManager {
   }
 
   generateDrawingSettings() {
+    const lineColor = this.getSetting('drawing', 'lineColor');
+    const lineWidth = this.getSetting('drawing', 'lineWidth');
+
     return `
       <div class="section">
         <div class="section-title">🎨 <span data-i18n="drawing_settings">그리기 모드 설정</span></div>
@@ -380,15 +383,18 @@ class SettingsManager {
           <div class="setting-item">
             <label for="drawing-lineColor" data-i18n="line_color">선 색상</label>
             <div class="color-input-wrapper">
-              <input type="color" id="drawing-lineColor" value="${this.getSetting('drawing', 'lineColor')}">
-              <span class="color-value">${this.getSetting('drawing', 'lineColor')}</span>
+              <input type="color" id="drawing-lineColor" value="${lineColor}">
+              <span class="color-value">${lineColor}</span>
+              <div class="line-preview-container">
+                <div class="line-preview" id="line-preview" style="height: ${lineWidth}px; color: ${lineColor};"></div>
+              </div>
             </div>
           </div>
           
           <div class="setting-item">
-            <label for="drawing-lineWidth"><span data-i18n="line_width">선 굵기</span> (${this.getSetting('drawing', 'lineWidth')}px)</label>
+            <label for="drawing-lineWidth"><span data-i18n="line_width">선 굵기</span> (${lineWidth}px)</label>
             <div class="range-input-wrapper">
-              <input type="range" id="drawing-lineWidth" min="1" max="10" value="${this.getSetting('drawing', 'lineWidth')}">
+              <input type="range" id="drawing-lineWidth" min="1" max="10" value="${lineWidth}">
               <div class="range-labels">
                 <span>1px</span>
                 <span>10px</span>
@@ -399,8 +405,8 @@ class SettingsManager {
           <div class="setting-item">
             <label class="toggle-label">
               <input type="checkbox" id="drawing-toolbarCollapsed" ${this.getSetting('drawing', 'toolbarCollapsed') ? 'checked' : ''}>
-              <span data-i18n="toolbar_collapsed">도구 모음 기본 접힘 상태</span>
               <span class="toggle-slider"></span>
+              <span data-i18n="toolbar_collapsed">도구 모음 기본 접힘 상태</span>
             </label>
           </div>
         </div>
@@ -416,7 +422,7 @@ class SettingsManager {
         <div class="setting-item">
           <label for="textMasking-maskingChar" data-i18n="masking_char">마스킹 문자</label>
           <div class="char-input-wrapper">
-            <input type="text" id="textMasking-maskingChar" value="${this.getSetting('textMasking', 'maskingChar')}" maxlength="1" placeholder="*">
+            <input type="text" id="textMasking-maskingChar" value="${this.getSetting('textMasking', 'maskingChar')}" placeholder="*">
             <span class="char-preview"><span data-i18n="masking_preview">미리보기</span>: ${this.getSetting('textMasking', 'maskingChar').repeat(5)}</span>
           </div>
         </div>
@@ -477,6 +483,32 @@ class SettingsManager {
   }
 
   /**
+   * 마스킹 문자 미리보기 업데이트
+   */
+  updateMaskingCharPreview(char) {
+    const preview = document.querySelector('.char-preview');
+    if (preview) {
+      const span = preview.querySelector('span');
+      if (span) {
+        const previewText = char ? char.repeat(5) : '';
+        preview.innerHTML = `<span data-i18n="masking_preview">${span.textContent}</span>: ${previewText}`;
+        this.i18n.localizePage();
+      }
+    }
+  }
+
+  /**
+   * 선 미리보기 업데이트
+   */
+  updateLinePreview(color, width) {
+    const linePreview = document.getElementById('line-preview');
+    if (linePreview) {
+      linePreview.style.height = width + 'px';
+      linePreview.style.color = color;
+    }
+  }
+
+  /**
    * UI 이벤트 바인딩
    */
   bindUIEvents() {
@@ -510,8 +542,10 @@ class SettingsManager {
 
     // 그리기 설정
     document.getElementById('drawing-lineColor')?.addEventListener('change', (e) => {
-      this.setSetting('drawing', 'lineColor', e.target.value);
-      document.querySelector('.color-value').textContent = e.target.value;
+      const color = e.target.value;
+      this.setSetting('drawing', 'lineColor', color);
+      document.querySelector('.color-value').textContent = color;
+      this.updateLinePreview(color, this.getSetting('drawing', 'lineWidth'));
     });
 
     document.getElementById('drawing-lineWidth')?.addEventListener('input', (e) => {
@@ -525,6 +559,7 @@ class SettingsManager {
           this.i18n.localizePage();
         }
       }
+      this.updateLinePreview(this.getSetting('drawing', 'lineColor'), value);
     });
 
     document.getElementById('drawing-toolbarCollapsed')?.addEventListener('change', (e) => {
@@ -532,19 +567,71 @@ class SettingsManager {
     });
 
     // 텍스트 마스킹 설정
-    document.getElementById('textMasking-maskingChar')?.addEventListener('input', (e) => {
-      const value = e.target.value.slice(-1) || '*'; // 마지막 문자만 사용
-      e.target.value = value;
-      this.setSetting('textMasking', 'maskingChar', value);
-      const preview = document.querySelector('.char-preview');
-      if (preview) {
-        const span = preview.querySelector('span');
-        if (span) {
-          preview.innerHTML = `<span data-i18n="masking_preview">${span.textContent}</span>: ${value.repeat(5)}`;
-          this.i18n.localizePage();
+    const maskingCharInput = document.getElementById('textMasking-maskingChar');
+
+    if (maskingCharInput) {
+      let isComposing = false;
+
+      // 한글 입력 시작 감지
+      maskingCharInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+      });
+
+      // 한글 입력 완료 감지
+      maskingCharInput.addEventListener('compositionend', (e) => {
+        isComposing = false;
+        const value = e.target.value;
+
+        // 입력 완료 후 마지막 문자만 유지
+        if (value.length > 0) {
+          const lastChar = value.slice(-1);
+          e.target.value = lastChar;
+          this.updateMaskingCharPreview(lastChar);
+          this.setSetting('textMasking', 'maskingChar', lastChar);
         }
-      }
-    });
+      });
+
+      // 입력 이벤트
+      maskingCharInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+
+        // 한글 입력 중일 때
+        if (isComposing) {
+          // 조합 중인 문자도 미리보기에 표시 (마지막 문자만)
+          if (value.length > 0) {
+            const lastChar = value.slice(-1);
+            this.updateMaskingCharPreview(lastChar);
+          } else {
+            this.updateMaskingCharPreview('');
+          }
+        } else {
+          // 한글 입력 중이 아닐 때 (영문, 숫자, 특수문자 등)
+          if (value.length > 1) {
+            // 2자 이상이면 마지막 문자만 사용
+            const lastChar = value.slice(-1);
+            e.target.value = lastChar;
+            this.updateMaskingCharPreview(lastChar);
+            this.setSetting('textMasking', 'maskingChar', lastChar);
+          } else if (value.length === 1) {
+            // 1자면 그대로 저장
+            this.updateMaskingCharPreview(value);
+            this.setSetting('textMasking', 'maskingChar', value);
+          } else {
+            // 빈 값이면 미리보기만 비움 (아직 저장하지 않음)
+            this.updateMaskingCharPreview('');
+          }
+        }
+      });
+
+      // 포커스 해제 시 빈 값이면 기본값(*) 설정
+      maskingCharInput.addEventListener('blur', (e) => {
+        if (e.target.value.trim() === '') {
+          e.target.value = '*';
+          this.updateMaskingCharPreview('*');
+          this.setSetting('textMasking', 'maskingChar', '*');
+        }
+      });
+    }
 
     // 영역 블러 설정
     document.getElementById('areaBlur-blurIntensity')?.addEventListener('input', (e) => {
