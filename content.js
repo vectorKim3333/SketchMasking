@@ -39,6 +39,8 @@ class SketchMasking {
     // 상태 변수들
     this.isDrawingMode = false;
     this.isAreaMaskingMode = false;
+    // 둘 다 활성화될 수 있으므로 현재 활성 모드를 별도로 추적
+    this.activeMode = 'normal'; // 'normal' | 'drawing' | 'area_masking'
     this.currentTool = this.CONSTANTS.DEFAULT_TOOL;
     this.isDrawing = false;
 
@@ -173,8 +175,8 @@ class SketchMasking {
       this.setupCanvasContext(this.tempCtx);
     }
 
-    // 도구바 접힘 상태 적용
-    if (this.toolbar && this.isDrawingMode) {
+    // 도구바 접힘 상태 적용 (현재 활성 모드가 그리기일 때만)
+    if (this.toolbar && this.activeMode === 'drawing') {
       if (this.settings.drawing.toolbarCollapsed !== (this.toolbar.classList.contains('collapsed'))) {
         this.toggleToolbar();
       }
@@ -421,9 +423,7 @@ class SketchMasking {
 
   // 유틸리티 함수들: 모드 상태 관리
   getCurrentMode() {
-    if (this.isDrawingMode) return 'drawing';
-    if (this.isAreaMaskingMode) return 'area_masking';
-    return 'normal';
+    return this.activeMode;
   }
 
   isAnyModeActive() {
@@ -431,31 +431,48 @@ class SketchMasking {
   }
 
   deactivateAllModes() {
-    if (this.isDrawingMode) {
-      this.deactivateDrawingMode();
-      this.isDrawingMode = false;
+    // 전체 초기화 로직으로 교체 (두 모드 모두 종료)
+    const wasDrawingActive = this.isDrawingMode;
+    this.deactivateVisuals();
+    if (wasDrawingActive && this.maskedElements.length > 0) {
+      // 기존 동작 유지: 그리기 모드 종료 시 텍스트 마스킹 해제
+      this.unmaskAllText();
     }
-    if (this.isAreaMaskingMode) {
-      this.deactivateAreaMaskingMode();
-      this.isAreaMaskingMode = false;
+    this.isDrawingMode = false;
+    this.isAreaMaskingMode = false;
+    this.activeMode = 'normal';
+  }
+
+  // 현재 활성 모드를 설정하고 UI 반영
+  setActiveMode(mode) {
+    this.activeMode = mode; // 'drawing' | 'area_masking'
+    if (!this.overlay) return;
+
+    if (mode === 'drawing') {
+      document.body.classList.add('sketch-drawing-mode');
+      document.body.classList.remove('sketch-area-masking-mode');
+      this.overlay.style.cursor = 'default';
+      if (this.toolbarContainer) this.toolbarContainer.style.display = 'block';
+    } else if (mode === 'area_masking') {
+      document.body.classList.add('sketch-area-masking-mode');
+      document.body.classList.remove('sketch-drawing-mode');
+      this.overlay.style.cursor = 'crosshair';
+      if (this.toolbarContainer) this.toolbarContainer.style.display = 'none';
     }
   }
 
   toggleDrawingMode() {
-    if (this.isDrawingMode) {
-      // 그리기 모드 비활성화
+    if (this.isDrawingMode && this.activeMode === 'drawing') {
+      // 현재 활성 모드를 다시 실행 → 전체 초기화
       this.deactivateDrawingMode();
       this.isDrawingMode = false;
+      this.isAreaMaskingMode = false;
+      this.activeMode = 'normal';
     } else {
-      // 다른 모드들과 충돌 방지 - 영역 마스킹 모드 비활성화
-      if (this.isAreaMaskingMode) {
-        this.deactivateAreaMaskingMode();
-        this.isAreaMaskingMode = false;
-      }
-
-      // 그리기 모드 활성화
-      this.activateDrawingMode();
+      // 그리기 모드 활성화 (다른 모드는 유지)
       this.isDrawingMode = true;
+      this.activateDrawingMode();
+      this.setActiveMode('drawing');
     }
   }
 
@@ -477,6 +494,7 @@ class SketchMasking {
     // 그리기 모드 전용 스타일 적용
     document.body.style.userSelect = 'none';
     document.body.classList.add('sketch-drawing-mode');
+    document.body.classList.remove('sketch-area-masking-mode');
 
     // 도구모음 표시
     if (this.toolbarContainer) {
@@ -512,23 +530,11 @@ class SketchMasking {
   }
 
   deactivateDrawingMode() {
-    // 오버레이 비활성화
-    this.overlay.style.display = 'none';
-    this.overlay.style.pointerEvents = 'none';
-    this.overlay.style.cursor = 'default';
-
-    // 페이지 스타일 복구
-    document.body.style.userSelect = 'auto';
-    document.body.classList.remove('sketch-drawing-mode');
-
-    // 그리기 내용 초기화
-    this.clearCanvas();
-
-    // 마스킹된 텍스트가 있으면 모두 해제
+    // 전체 시각 요소 초기화 + 텍스트 마스킹 복구(기존 동작 유지)
+    this.deactivateVisuals();
     if (this.maskedElements.length > 0) {
       this.unmaskAllText();
     }
-
     this.showNotification(chrome.i18n.getMessage('notify_drawing_mode_off'), 'info');
   }
 
@@ -551,8 +557,8 @@ class SketchMasking {
     // 도구모음 클릭 시 무시
     if (e.target.closest('#sketch-toolbar-container')) return;
 
-    // 그리기 모드인 경우
-    if (this.isDrawingMode) {
+    // 활성 모드 기준 처리
+    if (this.activeMode === 'drawing') {
       this.isDrawing = true;
       this.startX = e.clientX;
       this.startY = e.clientY;
@@ -568,7 +574,7 @@ class SketchMasking {
     }
 
     // 영역 마스킹 모드인 경우
-    if (this.isAreaMaskingMode) {
+    if (this.activeMode === 'area_masking') {
       this.isDrawing = true;
       this.startX = e.clientX;
       this.startY = e.clientY;
@@ -586,7 +592,7 @@ class SketchMasking {
     const currentY = e.clientY;
 
     // 그리기 모드인 경우
-    if (this.isDrawingMode) {
+    if (this.activeMode === 'drawing') {
       // 임시 캔버스 초기화 및 설정
       this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
       this.setupCanvasContext(this.tempCtx);
@@ -597,7 +603,7 @@ class SketchMasking {
     }
 
     // 영역 마스킹 모드인 경우 - 항상 사각형
-    if (this.isAreaMaskingMode) {
+    if (this.activeMode === 'area_masking') {
       // 임시 캔버스 초기화 및 설정
       this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
       this.setupCanvasContext(this.tempCtx);
@@ -670,7 +676,7 @@ class SketchMasking {
     const currentY = e.clientY;
 
     // 그리기 모드인 경우
-    if (this.isDrawingMode) {
+    if (this.activeMode === 'drawing') {
       // 임시 캔버스의 내용을 메인 캔버스로 복사 (펜 도구 제외)
       if (this.currentTool !== 'pen') {
         this.ctx.drawImage(this.tempCanvas, 0, 0);
@@ -683,7 +689,7 @@ class SketchMasking {
     }
 
     // 영역 마스킹 모드인 경우
-    if (this.isAreaMaskingMode) {
+    if (this.activeMode === 'area_masking') {
       const width = currentX - this.startX;
       const height = currentY - this.startY;
 
@@ -828,20 +834,17 @@ class SketchMasking {
   }
 
   toggleAreaMaskingMode() {
-    if (this.isAreaMaskingMode) {
-      // 영역 마스킹 모드 비활성화
+    if (this.isAreaMaskingMode && this.activeMode === 'area_masking') {
+      // 현재 활성 모드를 다시 실행 → 전체 초기화
       this.deactivateAreaMaskingMode();
+      this.isDrawingMode = false;
       this.isAreaMaskingMode = false;
+      this.activeMode = 'normal';
     } else {
-      // 다른 모드들과 충돌 방지 - 그리기 모드 비활성화
-      if (this.isDrawingMode) {
-        this.deactivateDrawingMode();
-        this.isDrawingMode = false;
-      }
-
-      // 영역 마스킹 모드 활성화
-      this.activateAreaMaskingMode();
+      // 영역 마스킹 모드 활성화 (다른 모드는 유지)
       this.isAreaMaskingMode = true;
+      this.activateAreaMaskingMode();
+      this.setActiveMode('area_masking');
     }
   }
 
@@ -863,6 +866,7 @@ class SketchMasking {
     // 영역 마스킹 모드 전용 스타일 적용
     document.body.style.userSelect = 'none';
     document.body.classList.add('sketch-area-masking-mode');
+    document.body.classList.remove('sketch-drawing-mode');
 
     // 영역 마스킹 모드에서는 도구모음 숨기기
     if (this.toolbarContainer) {
@@ -883,28 +887,8 @@ class SketchMasking {
   }
 
   deactivateAreaMaskingMode() {
-    // 오버레이 비활성화
-    this.overlay.style.display = 'none';
-    this.overlay.style.pointerEvents = 'none';
-    this.overlay.style.cursor = 'default';
-
-    // 페이지 스타일 복구
-    document.body.style.userSelect = 'auto';
-    document.body.classList.remove('sketch-area-masking-mode');
-
-    // 도구모음 다시 보이기 (필요한 경우에만)
-    if (this.toolbarContainer && !this.isDrawingMode) {
-      this.toolbarContainer.style.display = 'block';
-    }
-
-    // 캔버스 초기화
-    this.clearCanvas();
-
-    // 영역 마스킹이 있으면 모두 해제
-    if (this.areaMasks.length > 0) {
-      this.clearAllAreaMasks();
-    }
-
+    // 전체 시각 요소 초기화 (영역/그리기 모두)
+    this.deactivateVisuals();
     this.showNotification(chrome.i18n.getMessage('notify_area_masking_off'), 'info');
   }
 
@@ -960,6 +944,34 @@ class SketchMasking {
       }
     });
     this.areaMasks = [];
+  }
+
+  // 오버레이/캔버스/영역 마스킹 등 시각 요소 전체 초기화 (텍스트 마스킹 제외)
+  deactivateVisuals() {
+    if (!this.overlay) return;
+
+    // 오버레이 비활성화
+    this.overlay.style.display = 'none';
+    this.overlay.style.pointerEvents = 'none';
+    this.overlay.style.cursor = 'default';
+
+    // 페이지 스타일 복구
+    document.body.style.userSelect = 'auto';
+    document.body.classList.remove('sketch-drawing-mode');
+    document.body.classList.remove('sketch-area-masking-mode');
+
+    // 도구모음 복구
+    if (this.toolbarContainer) {
+      this.toolbarContainer.style.display = 'block';
+    }
+
+    // 캔버스 초기화
+    this.clearCanvas();
+
+    // 모든 영역 마스킹 제거
+    if (this.areaMasks.length > 0) {
+      this.clearAllAreaMasks();
+    }
   }
 
   showNotification(message, type = 'info') {

@@ -20,7 +20,8 @@ class SketchMaskingPopup {
     // 각 모드의 상태 관리
     this.state = {
       isDrawingMode: false,
-      isAreaMaskingMode: false
+      isAreaMaskingMode: false,
+      currentMode: 'normal' // 'normal' | 'drawing' | 'area_masking'
     };
 
     // 다국어 관리자
@@ -52,10 +53,12 @@ class SketchMaskingPopup {
       if (currentStatus) {
         this.state.isDrawingMode = currentStatus.isDrawingMode;
         this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
+        this.state.currentMode = currentStatus.currentMode || 'normal';
       } else {
         // content script와 통신 실패 시 기본값으로 초기화
         this.state.isDrawingMode = false;
         this.state.isAreaMaskingMode = false;
+        this.state.currentMode = 'normal';
       }
 
       // UI 업데이트
@@ -66,6 +69,7 @@ class SketchMaskingPopup {
       // 오류 발생 시 기본값으로 초기화
       this.state.isDrawingMode = false;
       this.state.isAreaMaskingMode = false;
+      this.state.currentMode = 'normal';
       this.updateButtonUI();
     }
   }
@@ -136,6 +140,7 @@ class SketchMaskingPopup {
       if (currentStatus) {
         this.state.isDrawingMode = currentStatus.isDrawingMode;
         this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
+        this.state.currentMode = currentStatus.currentMode || 'normal';
       }
 
       this.updateButtonUI();
@@ -155,6 +160,7 @@ class SketchMaskingPopup {
       if (currentStatus) {
         this.state.isDrawingMode = currentStatus.isDrawingMode;
         this.state.isAreaMaskingMode = currentStatus.isAreaMaskingMode;
+        this.state.currentMode = currentStatus.currentMode || 'normal';
       }
 
       this.updateButtonUI();
@@ -273,8 +279,10 @@ class SketchMaskingPopup {
   }
 
   updateButtonUI() {
-    // 그리기 모드 버튼 UI 업데이트
-    if (this.state.isDrawingMode) {
+    const mode = this.state.currentMode;
+
+    // 그리기 버튼
+    if (mode === 'drawing') {
       this.toggleDrawingBtn.textContent = this.i18n.getMessage('drawing_mode_disable');
       this.toggleDrawingBtn.classList.add('active');
     } else {
@@ -282,8 +290,8 @@ class SketchMaskingPopup {
       this.toggleDrawingBtn.classList.remove('active');
     }
 
-    // 영역 마스킹 모드 버튼 UI 업데이트
-    if (this.state.isAreaMaskingMode) {
+    // 영역 마스킹 버튼
+    if (mode === 'area_masking') {
       this.areaMaskingBtn.textContent = this.i18n.getMessage('area_masking_disable');
       this.areaMaskingBtn.classList.add('active');
     } else {
@@ -323,4 +331,3 @@ class SketchMaskingPopup {
 document.addEventListener('DOMContentLoaded', () => {
   new SketchMaskingPopup();
 });
-
