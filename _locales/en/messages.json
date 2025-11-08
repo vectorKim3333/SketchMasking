@@ -3,7 +3,7 @@
     "message": "SketchMasking"
   },
   "extension_description": {
-    "message": "Web sketch & masking tool - Draw, mask text & blur areas to protect privacy before screenshot"
+    "message": "📝 웹 스케치 마스킹 도구 - 그리기, 텍스트 마스킹, 영역 블러로 개인정보 보호 후 캡쳐 📝 Web sketch & masking tool - Draw, mask text & blur areas to protect privacy before screenshot"
   },
   "toggle_drawing_description": {
     "message": "Toggle drawing mode"
@@ -289,5 +289,23 @@
   },
   "tool_close": {
     "message": "Close"
+  },
+  "popup_text_masked_success": {
+    "message": "Selected text has been masked."
+  },
+  "popup_text_masking_failed": {
+    "message": "Text masking failed. Please select text first."
+  },
+  "popup_drawing_toggled": {
+    "message": "Drawing mode has been toggled."
+  },
+  "popup_drawing_toggle_failed": {
+    "message": "Failed to toggle drawing mode."
+  },
+  "popup_area_masking_toggled": {
+    "message": "Area masking mode has been toggled."
+  },
+  "popup_area_masking_toggle_failed": {
+    "message": "Failed to toggle area masking mode."
   }
 }

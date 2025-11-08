@@ -3,7 +3,7 @@
     "message": "SketchMasking"
   },
   "extension_description": {
-    "message": "웹 스케치 마스킹 도구 - 그리기, 텍스트 마스킹, 영역 블러로 개인정보 보호 후 캡쳐"
+    "message": "📝 웹 스케치 마스킹 도구 - 그리기, 텍스트 마스킹, 영역 블러로 개인정보 보호 후 캡쳐 📝 Web sketch & masking tool - Draw, mask text & blur areas to protect privacy before screenshot"
   },
   "toggle_drawing_description": {
     "message": "그리기 모드 토글"
@@ -289,5 +289,23 @@
   },
   "tool_close": {
     "message": "닫기"
+  },
+  "popup_text_masked_success": {
+    "message": "선택된 텍스트가 마스킹되었습니다."
+  },
+  "popup_text_masking_failed": {
+    "message": "텍스트 마스킹에 실패했습니다. 텍스트를 먼저 선택해주세요."
+  },
+  "popup_drawing_toggled": {
+    "message": "그리기 모드가 토글되었습니다."
+  },
+  "popup_drawing_toggle_failed": {
+    "message": "그리기 모드 토글에 실패했습니다."
+  },
+  "popup_area_masking_toggled": {
+    "message": "영역 마스킹 모드가 토글되었습니다."
+  },
+  "popup_area_masking_toggle_failed": {
+    "message": "영역 마스킹 모드 토글에 실패했습니다."
   }
 }

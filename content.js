@@ -68,15 +68,24 @@ class SketchMasking {
     // 설정 로드
     await this.loadSettings();
 
-    this.createOverlay();
-    this.setupEventListeners();
+    // 메시지/단축키 리스너와 설정 변경 리스너만 초기화
+    // 오버레이는 사용자 동작(팝업/단축키)으로 모드 활성화 시 생성
     this.setupKeyboardShortcuts();
     this.setupSettingsListener();
+  }
 
-    // 초기 도구 버튼 상태 설정 (requestAnimationFrame 사용으로 성능 개선)
-    requestAnimationFrame(() => {
-      this.updateToolbarButtons();
-    });
+  /**
+   * 오버레이와 관련 요소들이 필요한 시점에만 생성
+   */
+  ensureOverlay() {
+    if (this.overlay) return;
+
+    // 오버레이 및 관련 캔버스/툴바 생성
+    this.createOverlay();
+    this.setupEventListeners();
+
+    // 생성 직후 버튼 상태 동기화
+    this.updateToolbarButtons();
   }
 
   /**
@@ -451,6 +460,9 @@ class SketchMasking {
   }
 
   activateDrawingMode() {
+    // 필요 시 오버레이 생성
+    this.ensureOverlay();
+
     // 오버레이가 DOM에 있는지 확인
     if (!document.body.contains(this.overlay)) {
       document.body.appendChild(this.overlay);
@@ -834,6 +846,9 @@ class SketchMasking {
   }
 
   activateAreaMaskingMode() {
+    // 필요 시 오버레이 생성
+    this.ensureOverlay();
+
     // 오버레이가 DOM에 있는지 확인
     if (!document.body.contains(this.overlay)) {
       document.body.appendChild(this.overlay);
@@ -1011,4 +1026,3 @@ if (!window.sketchMaskingInitialized) {
     }
   }, 1000);
 }
-

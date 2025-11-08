@@ -80,12 +80,12 @@ class SketchMaskingPopup {
     this.maskTextBtn.addEventListener('click', async () => {
       try {
         await this.executeCommand(this.CONSTANTS.COMMANDS.MASK_TEXT);
-        this.showUIFeedback(this.maskTextBtn, '선택된 텍스트가 마스킹되었습니다.', 'success');
+        this.showUIFeedback(this.maskTextBtn, this.i18n.getMessage('popup_text_masked_success'), 'success');
         setTimeout(() => window.close(), 500); // 팝업 닫기 (약간의 지연)
       } catch (error) {
         this.showUIFeedback(
           this.maskTextBtn,
-          '텍스트 마스킹에 실패했습니다. 텍스트를 먼저 선택해주세요.',
+          this.i18n.getMessage('popup_text_masking_failed'),
           'error'
         );
       }
@@ -139,9 +139,9 @@ class SketchMaskingPopup {
       }
 
       this.updateButtonUI();
-      this.showUIFeedback(this.toggleDrawingBtn, '그리기 모드가 토글되었습니다.', 'success');
+      this.showUIFeedback(this.toggleDrawingBtn, this.i18n.getMessage('popup_drawing_toggled'), 'success');
     } catch (error) {
-      this.showUIFeedback(this.toggleDrawingBtn, '그리기 모드 토글에 실패했습니다.', 'error');
+      this.showUIFeedback(this.toggleDrawingBtn, this.i18n.getMessage('popup_drawing_toggle_failed'), 'error');
     }
   }
 
@@ -158,9 +158,9 @@ class SketchMaskingPopup {
       }
 
       this.updateButtonUI();
-      this.showUIFeedback(this.areaMaskingBtn, '영역 마스킹 모드가 토글되었습니다.', 'success');
+      this.showUIFeedback(this.areaMaskingBtn, this.i18n.getMessage('popup_area_masking_toggled'), 'success');
     } catch (error) {
-      this.showUIFeedback(this.areaMaskingBtn, '영역 마스킹 모드 토글에 실패했습니다.', 'error');
+      this.showUIFeedback(this.areaMaskingBtn, this.i18n.getMessage('popup_area_masking_toggle_failed'), 'error');
     }
   }
 
