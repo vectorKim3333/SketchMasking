@@ -83,15 +83,17 @@ class SketchMaskingPopup {
     // 텍스트 마스킹 버튼
     this.maskTextBtn.addEventListener('click', async () => {
       try {
+        const tab = await this.getCurrentTab();
+        if (!this.canInjectContentScript(tab.url)) {
+          this.showUIFeedback(this.maskTextBtn, this.i18n.getMessage('popup_restricted_page'), 'error');
+          return;
+        }
+
         await this.executeCommand(this.CONSTANTS.COMMANDS.MASK_TEXT);
         this.showUIFeedback(this.maskTextBtn, this.i18n.getMessage('popup_text_masked_success'), 'success');
         setTimeout(() => window.close(), 500); // 팝업 닫기 (약간의 지연)
       } catch (error) {
-        this.showUIFeedback(
-          this.maskTextBtn,
-          this.i18n.getMessage('popup_text_masking_failed'),
-          'error'
-        );
+        this.showUIFeedback(this.maskTextBtn, this.i18n.getMessage('popup_text_masking_failed'), 'error');
       }
     });
 
@@ -133,6 +135,13 @@ class SketchMaskingPopup {
   // 그리기 모드 토글 전용 핸들러
   async handleDrawingModeToggle() {
     try {
+      const tab = await this.getCurrentTab();
+      if (!this.canInjectContentScript(tab.url)) {
+        // 제한 페이지: 팝업 피드백만 표시
+        this.showUIFeedback(this.toggleDrawingBtn, this.i18n.getMessage('popup_restricted_page'), 'error');
+        return;
+      }
+
       await this.executeCommand(this.CONSTANTS.COMMANDS.TOGGLE_DRAWING);
 
       // 명령 실행 후 실제 상태를 다시 가져와서 동기화
@@ -153,6 +162,13 @@ class SketchMaskingPopup {
   // 영역 마스킹 모드 토글 전용 핸들러
   async handleAreaMaskingToggle() {
     try {
+      const tab = await this.getCurrentTab();
+      if (!this.canInjectContentScript(tab.url)) {
+        // 제한 페이지: 팝업 피드백만 표시
+        this.showUIFeedback(this.areaMaskingBtn, this.i18n.getMessage('popup_restricted_page'), 'error');
+        return;
+      }
+
       await this.executeCommand(this.CONSTANTS.COMMANDS.TOGGLE_AREA_MASKING);
 
       // 명령 실행 후 실제 상태를 다시 가져와서 동기화
@@ -180,7 +196,7 @@ class SketchMaskingPopup {
 
     // content script를 실행할 수 없는 페이지인 경우 에러 발생
     if (!this.canInjectContentScript(tab.url)) {
-      throw new Error('이 페이지에서는 확장 프로그램을 사용할 수 없습니다.');
+      throw new Error('RESTRICTED');
     }
 
     try {
@@ -191,6 +207,8 @@ class SketchMaskingPopup {
       await chrome.tabs.sendMessage(tab.id, { command });
     }
   }
+
+  // 시스템 알림은 사용하지 않음: 팝업 내 피드백만 사용
 
   async getCurrentTab() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

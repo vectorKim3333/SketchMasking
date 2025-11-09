@@ -307,5 +307,8 @@
   },
   "popup_area_masking_toggle_failed": {
     "message": "Failed to toggle area masking mode."
+  },
+  "popup_restricted_page": {
+    "message": "Not available on this page (Chrome page)."
   }
 }

@@ -307,5 +307,8 @@
   },
   "popup_area_masking_toggle_failed": {
     "message": "영역 마스킹 모드 토글에 실패했습니다."
+  },
+  "popup_restricted_page": {
+    "message": "이 페이지에서는 사용할 수 없습니다 (Chrome 페이지)."
   }
 }

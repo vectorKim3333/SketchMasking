@@ -70,4 +70,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // 필요시 페이지 로드 완료 후 작업 수행
 });
-
