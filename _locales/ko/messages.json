@@ -101,6 +101,24 @@
   "tips_4": {
     "message": "영역 마스킹과 그리기 모드는 동시에 사용 불가"
   },
+  "drawing_tools_list": {
+    "message": "박스(▢), 원(○), 펜(✎), 선(/), 화살표(➤), 텍스트(T)"
+  },
+  "undo_redo": {
+    "message": "실행 취소 / 다시 실행"
+  },
+  "undo_keys": {
+    "message": "Undo: Ctrl+Z / ⌘+Z"
+  },
+  "redo_keys": {
+    "message": "Redo: Ctrl+Shift+Z / ⌘+Shift+Z 또는 Ctrl+Y"
+  },
+  "undo_redo_unified": {
+    "message": "그리기와 영역 마스킹 작업을 하나의 타임라인으로 되돌립니다."
+  },
+  "undo_redo_textnote": {
+    "message": "텍스트 입력 중에는 기본 편집 Undo/Redo를 유지합니다."
+  },
   "shortcut": {
     "message": "단축키"
   },

@@ -69,6 +69,18 @@ class SketchMasking {
     this.maskedElements = [];
     this.areaMasks = []; // 영역 마스킹 정보 저장
 
+    // 히스토리 스택 (Undo/Redo)
+    // 개별 모드 스택은 더 이상 사용하지 않고, 전역 히스토리를 사용
+    this.history = {
+      drawingUndo: [],
+      drawingRedo: [],
+      areaUndo: [],
+      areaRedo: []
+    };
+    this.globalHistory = { undo: [], redo: [] };
+    this._preDrawImage = null; // 드로잉 작업 전 캔버스 스냅샷
+    this._areaPreSnapshot = null; // 영역 마스킹 작업 전 스냅샷
+
     this.init();
   }
 
@@ -80,6 +92,7 @@ class SketchMasking {
     // 오버레이는 사용자 동작(팝업/단축키)으로 모드 활성화 시 생성
     this.setupKeyboardShortcuts();
     this.setupSettingsListener();
+    this.setupLocalKeyShortcuts();
   }
 
   /**
@@ -427,6 +440,176 @@ class SketchMasking {
     });
   }
 
+  // 로컬 키 이벤트 (Ctrl/Cmd + Z/Y)
+  setupLocalKeyShortcuts() {
+    this._onKeyDownBound = (e) => this.handleKeyDown(e);
+    document.addEventListener('keydown', this._onKeyDownBound, true);
+  }
+
+  handleKeyDown(e) {
+    // 텍스트 입력 중에는 페이지 기본 동작 유지
+    if (this.isTextEditing) return;
+
+    const isCtrl = e.ctrlKey || e.metaKey;
+    if (!isCtrl) return;
+
+    const key = (e.key || '').toLowerCase();
+
+    // Undo / Redo
+    if (key === 'z' && !e.shiftKey) {
+      const handled = this.undo();
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+      const handled = this.redo();
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  }
+
+  undo() {
+    return this.doGlobalUndo();
+  }
+
+  redo() {
+    return this.doGlobalRedo();
+  }
+
+  pushHistoryEntry(kind, before, after) {
+    try {
+      this.globalHistory.undo.push({ kind, before, after });
+      this.globalHistory.redo = [];
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  doGlobalUndo() {
+    if (!this.globalHistory || this.globalHistory.undo.length === 0) return false;
+    const entry = this.globalHistory.undo.pop();
+    this.globalHistory.redo.push(entry);
+    if (entry.kind === 'drawing') {
+      if (!this.ctx || !entry.before) return false;
+      try {
+        this.ctx.putImageData(entry.before, 0, 0);
+        this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+        this.saveCanvasState();
+        return true;
+      } catch (_) { return false; }
+    } else if (entry.kind === 'area') {
+      try {
+        this.applyAreaSnapshot(entry.before || []);
+        return true;
+      } catch (_) { return false; }
+    }
+    return false;
+  }
+
+  doGlobalRedo() {
+    if (!this.globalHistory || this.globalHistory.redo.length === 0) return false;
+    const entry = this.globalHistory.redo.pop();
+    this.globalHistory.undo.push(entry);
+    if (entry.kind === 'drawing') {
+      if (!this.ctx || !entry.after) return false;
+      try {
+        this.ctx.putImageData(entry.after, 0, 0);
+        this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+        this.saveCanvasState();
+        return true;
+      } catch (_) { return false; }
+    } else if (entry.kind === 'area') {
+      try {
+        this.applyAreaSnapshot(entry.after || []);
+        return true;
+      } catch (_) { return false; }
+    }
+    return false;
+  }
+
+  doDrawingUndo() {
+    if (!this.ctx || this.history.drawingUndo.length === 0) return false;
+    try {
+      const current = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.history.drawingRedo.push(current);
+      const prev = this.history.drawingUndo.pop();
+      this.ctx.putImageData(prev, 0, 0);
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+      this.saveCanvasState();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  doDrawingRedo() {
+    if (!this.ctx || this.history.drawingRedo.length === 0) return false;
+    try {
+      const current = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.history.drawingUndo.push(current);
+      const next = this.history.drawingRedo.pop();
+      this.ctx.putImageData(next, 0, 0);
+      this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+      this.saveCanvasState();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  getAreaSnapshot() {
+    return this.areaMasks.map(m => ({
+      x: m.x, y: m.y, width: m.width, height: m.height, blurIntensity: m.blurIntensity || this.settings.areaBlur.blurIntensity
+    }));
+  }
+
+  applyAreaSnapshot(snapshot) {
+    // 기존 마스크 제거
+    this.clearAllAreaMasks();
+    // 스냅샷으로 복원
+    snapshot.forEach(s => {
+      const maskOverlay = document.createElement('div');
+      maskOverlay.className = 'sketch-area-mask';
+      maskOverlay.style.cssText = `
+        position: fixed;
+        left: ${s.x}px;
+        top: ${s.y}px;
+        width: ${s.width}px;
+        height: ${s.height}px;
+        background-color: rgba(128, 128, 128, 0);
+        backdrop-filter: blur(${s.blurIntensity}px);
+        -webkit-backdrop-filter: blur(${s.blurIntensity}px);
+        border: none;
+        box-sizing: border-box;
+        pointer-events: none;
+        z-index: ${this.CONSTANTS.Z_INDEX_OVERLAY - 1};
+      `;
+      document.body.appendChild(maskOverlay);
+      this.areaMasks.push({ element: maskOverlay, x: s.x, y: s.y, width: s.width, height: s.height, blurIntensity: s.blurIntensity });
+    });
+  }
+
+  doAreaUndo() {
+    if (this.history.areaUndo.length === 0) return false;
+    const current = this.getAreaSnapshot();
+    this.history.areaRedo.push(current);
+    const prev = this.history.areaUndo.pop();
+    this.applyAreaSnapshot(prev);
+    return true;
+  }
+
+  doAreaRedo() {
+    if (this.history.areaRedo.length === 0) return false;
+    const current = this.getAreaSnapshot();
+    this.history.areaUndo.push(current);
+    const next = this.history.areaRedo.pop();
+    this.applyAreaSnapshot(next);
+    return true;
+  }
+
   // 유틸리티 함수들: 모드 상태 관리
   getCurrentMode() {
     return this.activeMode;
@@ -569,6 +752,10 @@ class SketchMasking {
 
     // 활성 모드 기준 처리
     if (this.activeMode === 'drawing') {
+      // 드로잉 전 상태 스냅샷 확보 (Undo용)
+      try {
+        this._preDrawImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      } catch (_) { this._preDrawImage = null; }
       this.isDrawing = true;
       this.startX = e.clientX;
       this.startY = e.clientY;
@@ -732,6 +919,11 @@ class SketchMasking {
     this.isTextEditing = true;
     this.textRect = { x, y, w, h };
 
+    // 텍스트 입력 전 캔버스 상태 저장 (Undo용)
+    try {
+      this._preDrawImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    } catch (_) { this._preDrawImage = null; }
+
     // 기존 입력창 제거
     if (this.textInputEl && this.textInputEl.parentNode) {
       this.textInputEl.parentNode.removeChild(this.textInputEl);
@@ -822,7 +1014,16 @@ class SketchMasking {
 
     ctx.restore();
 
-    // 상태 저장 및 청소
+    // 전역 히스토리에 (before/after) 저장
+    if (this._preDrawImage) {
+      try {
+        const afterImg = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        this.pushHistoryEntry('drawing', this._preDrawImage, afterImg);
+      } catch (_) { /* ignore */ }
+      this._preDrawImage = null;
+    }
+
+    // 상태 저장 및 청소 (리사이즈 복원용)
     this.saveCanvasState();
     this.removeTextInput();
   }
@@ -927,7 +1128,16 @@ class SketchMasking {
         this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
       }
 
-      // 실행 취소를 위한 상태 저장
+      // 전역 히스토리에 (before/after) 저장
+      if (this._preDrawImage) {
+        try {
+          const afterImg = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+          this.pushHistoryEntry('drawing', this._preDrawImage, afterImg);
+        } catch (_) { /* ignore */ }
+        this._preDrawImage = null;
+      }
+
+      // 리사이즈 복원을 위한 상태 저장
       this.saveCanvasState();
       return;
     }
@@ -1137,6 +1347,8 @@ class SketchMasking {
   }
 
   createAreaMask(x, y, width, height) {
+    // Undo용 현재 상태 스냅샷
+    const pre = this.getAreaSnapshot();
     // 절대값으로 변환하여 음수 너비/높이 처리
     const normalizedX = Math.min(x, x + width);
     const normalizedY = Math.min(y, y + height);
@@ -1152,6 +1364,7 @@ class SketchMasking {
     // 마스킹 오버레이 div 생성
     const maskOverlay = document.createElement('div');
     maskOverlay.className = 'sketch-area-mask';
+    const blurPx = this.settings.areaBlur.blurIntensity;
     maskOverlay.style.cssText = `
       position: fixed;
       left: ${normalizedX}px;
@@ -1159,8 +1372,8 @@ class SketchMasking {
       width: ${normalizedWidth}px;
       height: ${normalizedHeight}px;
       background-color: rgba(128, 128, 128, 0);
-      backdrop-filter: blur(${this.settings.areaBlur.blurIntensity}px);
-      -webkit-backdrop-filter: blur(${this.settings.areaBlur.blurIntensity}px);
+      backdrop-filter: blur(${blurPx}px);
+      -webkit-backdrop-filter: blur(${blurPx}px);
       border: none;
       box-sizing: border-box;
       pointer-events: none;
@@ -1175,8 +1388,13 @@ class SketchMasking {
       x: normalizedX,
       y: normalizedY,
       width: normalizedWidth,
-      height: normalizedHeight
+      height: normalizedHeight,
+      blurIntensity: blurPx
     });
+
+    // 전역 히스토리에 (before/after) 저장
+    const post = this.getAreaSnapshot();
+    this.pushHistoryEntry('area', pre, post);
 
     this.showNotification(chrome.i18n.getMessage('notify_area_masked', this.areaMasks.length.toString()), 'success');
   }
@@ -1221,6 +1439,18 @@ class SketchMasking {
     if (this.areaMasks.length > 0) {
       this.clearAllAreaMasks();
     }
+
+    // 히스토리 초기화
+    this.history.drawingUndo = [];
+    this.history.drawingRedo = [];
+    this.history.areaUndo = [];
+    this.history.areaRedo = [];
+    if (this.globalHistory) {
+      this.globalHistory.undo = [];
+      this.globalHistory.redo = [];
+    }
+    this._preDrawImage = null;
+    this._areaPreSnapshot = null;
   }
 
   showNotification(message, type = 'info') {

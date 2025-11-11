@@ -101,6 +101,24 @@
   "tips_4": {
     "message": "Area masking and drawing mode cannot be used simultaneously"
   },
+  "drawing_tools_list": {
+    "message": "Box (▢), Circle (○), Pen (✎), Line (/), Arrow (➤), Text (T)"
+  },
+  "undo_redo": {
+    "message": "Undo / Redo"
+  },
+  "undo_keys": {
+    "message": "Undo: Ctrl+Z / ⌘+Z"
+  },
+  "redo_keys": {
+    "message": "Redo: Ctrl+Shift+Z / ⌘+Shift+Z or Ctrl+Y"
+  },
+  "undo_redo_unified": {
+    "message": "Reverts drawing and area masking in a single unified timeline."
+  },
+  "undo_redo_textnote": {
+    "message": "While typing text, the page's native Undo/Redo is preserved."
+  },
   "shortcut": {
     "message": "Shortcut"
   },
