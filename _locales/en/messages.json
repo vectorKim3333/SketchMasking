@@ -161,6 +161,9 @@
   "line_width": {
     "message": "Line Width"
   },
+  "text_font_size": {
+    "message": "Text Size"
+  },
   "toolbar_collapsed": {
     "message": "Toolbar Collapsed by Default"
   },
@@ -196,6 +199,9 @@
   },
   "reset_description_drawing": {
     "message": "Drawing Mode: Red color, 2px width, toolbar expanded"
+  },
+  "reset_description_text_size": {
+    "message": "Text size: 16px"
   },
   "reset_description_text": {
     "message": "Text Masking: * character"
@@ -283,6 +289,12 @@
   },
   "tool_line": {
     "message": "Line"
+  },
+  "tool_text": {
+    "message": "Text"
+  },
+  "tool_arrow": {
+    "message": "Arrow"
   },
   "tool_settings": {
     "message": "Settings"

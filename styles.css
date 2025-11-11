@@ -223,6 +223,11 @@ body.sketch-drawing-mode #sketch-toolbar * {
   pointer-events: all;
 }
 
+/* 텍스트 입력창 상호작용 허용 */
+#sketch-masking-overlay .sketch-text-input {
+  pointer-events: auto;
+}
+
 /* 마스킹된 텍스트 스타일 */
 .sketch-masked-text {
   background-color: rgba(255, 255, 0, 0.2);

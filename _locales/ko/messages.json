@@ -161,6 +161,9 @@
   "line_width": {
     "message": "선 굵기"
   },
+  "text_font_size": {
+    "message": "텍스트 크기"
+  },
   "toolbar_collapsed": {
     "message": "도구 모음 기본 접힘 상태"
   },
@@ -196,6 +199,9 @@
   },
   "reset_description_drawing": {
     "message": "그리기 모드: 빨간색, 2px 굵기, 도구바 펼침"
+  },
+  "reset_description_text_size": {
+    "message": "텍스트 크기: 16px"
   },
   "reset_description_text": {
     "message": "텍스트 마스킹: * 문자"
@@ -283,6 +289,12 @@
   },
   "tool_line": {
     "message": "선"
+  },
+  "tool_text": {
+    "message": "텍스트"
+  },
+  "tool_arrow": {
+    "message": "화살표"
   },
   "tool_settings": {
     "message": "설정"

@@ -13,7 +13,8 @@ const SETTINGS_SCHEMA = {
   drawing: {
     lineColor: { type: 'color', default: '#FF0000', min: null, max: null },
     lineWidth: { type: 'number', default: 2, min: 1, max: 10 },
-    toolbarCollapsed: { type: 'boolean', default: false, required: false }
+    toolbarCollapsed: { type: 'boolean', default: false, required: false },
+    textFontSize: { type: 'number', default: 16, min: 8, max: 72 }
   },
 
   // 텍스트 마스킹 설정
@@ -374,6 +375,7 @@ class SettingsManager {
   generateDrawingSettings() {
     const lineColor = this.getSetting('drawing', 'lineColor');
     const lineWidth = this.getSetting('drawing', 'lineWidth');
+    const textFontSize = this.getSetting('drawing', 'textFontSize');
 
     return `
       <div class="section">
@@ -398,6 +400,22 @@ class SettingsManager {
               <div class="range-labels">
                 <span>1px</span>
                 <span>10px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label for="drawing-textFontSize"><span data-i18n="text_font_size">텍스트 크기</span> (${textFontSize}px)</label>
+            <div class="range-input-wrapper">
+              <input type="range" id="drawing-textFontSize" min="8" max="72" value="${textFontSize}">
+              <div class="range-labels">
+                <span>8px</span>
+                <span>72px</span>
+              </div>
+            </div>
+            <div class="text-preview-container">
+              <div class="text-preview" id="text-preview" style="font-size: ${textFontSize}px; color: ${lineColor};">
+                Ag 가Aa 123
               </div>
             </div>
           </div>
@@ -464,6 +482,7 @@ class SettingsManager {
             <span data-i18n="reset_description">모든 설정을 기본값으로 되돌립니다</span>:
             <ul>
               <li><span data-i18n="reset_description_drawing">그리기 모드: 빨간색, 2px 굵기, 도구바 펼침</span></li>
+              <li><span data-i18n="reset_description_text_size">텍스트 크기: 16px</span></li>
               <li><span data-i18n="reset_description_text">텍스트 마스킹: * 문자</span></li>
               <li><span data-i18n="reset_description_blur">영역 블러: 10px 강도</span></li>
               <li><span data-i18n="reset_description_language">언어 설정: 자동 감지</span></li>
@@ -509,6 +528,21 @@ class SettingsManager {
   }
 
   /**
+   * 텍스트 미리보기 업데이트
+   */
+  updateTextPreview(color, fontSize) {
+    const textPreview = document.getElementById('text-preview');
+    if (textPreview) {
+      if (typeof fontSize === 'number') {
+        textPreview.style.fontSize = fontSize + 'px';
+      }
+      if (typeof color === 'string') {
+        textPreview.style.color = color;
+      }
+    }
+  }
+
+  /**
    * UI 이벤트 바인딩
    */
   bindUIEvents() {
@@ -546,6 +580,7 @@ class SettingsManager {
       this.setSetting('drawing', 'lineColor', color);
       document.querySelector('.color-value').textContent = color;
       this.updateLinePreview(color, this.getSetting('drawing', 'lineWidth'));
+      this.updateTextPreview(color, this.getSetting('drawing', 'textFontSize'));
     });
 
     document.getElementById('drawing-lineWidth')?.addEventListener('input', (e) => {
@@ -564,6 +599,21 @@ class SettingsManager {
 
     document.getElementById('drawing-toolbarCollapsed')?.addEventListener('change', (e) => {
       this.setSetting('drawing', 'toolbarCollapsed', e.target.checked);
+    });
+
+    // 텍스트 폰트 크기 설정
+    document.getElementById('drawing-textFontSize')?.addEventListener('input', (e) => {
+      const value = parseInt(e.target.value);
+      this.setSetting('drawing', 'textFontSize', value);
+      const label = document.querySelector('label[for="drawing-textFontSize"]');
+      if (label) {
+        const span = label.querySelector('span');
+        if (span) {
+          label.innerHTML = `<span data-i18n="text_font_size">${span.textContent}</span> (${value}px)`;
+          this.i18n.localizePage();
+        }
+      }
+      this.updateTextPreview(this.getSetting('drawing', 'lineColor'), value);
     });
 
     // 텍스트 마스킹 설정

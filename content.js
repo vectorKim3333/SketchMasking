@@ -5,7 +5,8 @@ class SketchMasking {
       drawing: {
         lineColor: '#FF0000',
         lineWidth: 2,
-        toolbarCollapsed: false
+        toolbarCollapsed: false,
+        textFontSize: 16
       },
       textMasking: {
         maskingChar: '*'
@@ -31,7 +32,9 @@ class SketchMasking {
       { name: 'rectangle', icon: '▢', titleKey: 'tool_box' },
       { name: 'circle', icon: '○', titleKey: 'tool_circle' },
       { name: 'pen', icon: '✎', titleKey: 'tool_pen' },
+      { name: 'text', icon: 'T', titleKey: 'tool_text' },
       { name: 'line', icon: '/', titleKey: 'tool_line' },
+      { name: 'arrow', icon: '➤', titleKey: 'tool_arrow' },
       { name: 'settings', icon: '⚙️', titleKey: 'tool_settings' },
       { name: 'close', icon: '✕', titleKey: 'tool_close' }
     ];
@@ -47,6 +50,9 @@ class SketchMasking {
     // 좌표
     this.startX = 0;
     this.startY = 0;
+    this.isTextEditing = false;
+    this.textInputEl = null;
+    this.textRect = null; // { x, y, w, h }
 
     // DOM 요소들
     this.canvas = null;
@@ -554,8 +560,12 @@ class SketchMasking {
   }
 
   startDrawing(e) {
+    // 텍스트 입력 중에는 드로잉 비활성
+    if (this.isTextEditing) return;
     // 도구모음 클릭 시 무시
     if (e.target.closest('#sketch-toolbar-container')) return;
+    // 텍스트 입력창 상호작용 시 무시
+    if (e.target.classList && e.target.classList.contains('sketch-text-input')) return;
 
     // 활성 모드 기준 처리
     if (this.activeMode === 'drawing') {
@@ -586,7 +596,7 @@ class SketchMasking {
   }
 
   draw(e) {
-    if (!this.isDrawing) return;
+    if (!this.isDrawing || this.isTextEditing) return;
 
     const currentX = e.clientX;
     const currentY = e.clientY;
@@ -633,6 +643,13 @@ class SketchMasking {
       case 'line':
         this.drawLine(currentX, currentY);
         break;
+      case 'arrow':
+        this.drawArrow(currentX, currentY);
+        break;
+      case 'text':
+        // 텍스트는 드래그 영역을 가이드로 보여줌
+        this.drawRectangle(currentX, currentY);
+        break;
     }
   }
 
@@ -668,6 +685,221 @@ class SketchMasking {
     this.tempCtx.stroke();
   }
 
+  drawArrow(currentX, currentY) {
+    const ctx = this.tempCtx;
+    const startX = this.startX;
+    const startY = this.startY;
+    const endX = currentX;
+    const endY = currentY;
+
+    // 선
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    // 화살표 머리
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const angle = Math.atan2(dy, dx);
+    const baseSize = 10;
+    const headLen = Math.max(baseSize, this.settings.drawing.lineWidth * 4);
+    const headAngle = Math.PI / 6; // 30도
+
+    const x1 = endX - headLen * Math.cos(angle - headAngle);
+    const y1 = endY - headLen * Math.sin(angle - headAngle);
+    const x2 = endX - headLen * Math.cos(angle + headAngle);
+    const y2 = endY - headLen * Math.sin(angle + headAngle);
+
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.closePath();
+
+    // 채우기 및 외곽선 색상 설정
+    const color = this.settings.drawing.lineColor;
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  createTextInputAtRect(x, y, w, h) {
+    // 너무 작은 영역은 무시
+    const minSize = 10;
+    if (w < minSize || h < minSize) return;
+
+    this.isTextEditing = true;
+    this.textRect = { x, y, w, h };
+
+    // 기존 입력창 제거
+    if (this.textInputEl && this.textInputEl.parentNode) {
+      this.textInputEl.parentNode.removeChild(this.textInputEl);
+    }
+
+    const ta = document.createElement('textarea');
+    ta.className = 'sketch-text-input';
+    ta.style.position = 'fixed';
+    ta.style.left = x + 'px';
+    ta.style.top = y + 'px';
+    ta.style.width = Math.max(30, w) + 'px';
+    ta.style.height = Math.max(24, h) + 'px';
+    ta.style.padding = '4px 6px';
+    ta.style.boxSizing = 'border-box';
+    ta.style.border = '1px dashed ' + this.settings.drawing.lineColor;
+    ta.style.background = 'rgba(0,0,0,0.05)';
+    ta.style.color = this.settings.drawing.lineColor;
+    ta.style.font = `${this.settings.drawing.textFontSize || 16}px system-ui, -apple-system, sans-serif`;
+    ta.style.lineHeight = '1.3';
+    ta.style.resize = 'both';
+    ta.style.zIndex = (this.CONSTANTS.Z_INDEX_OVERLAY + 1).toString();
+    ta.style.pointerEvents = 'auto';
+    ta.style.outline = 'none';
+    ta.placeholder = '';
+
+    // 내부 이벤트 전파 방지
+    ['mousedown','mouseup','mousemove','click','dblclick'].forEach(evt => {
+      ta.addEventListener(evt, (ev) => ev.stopPropagation());
+    });
+
+    // 키 이벤트: Enter/Meta+Enter/Ctrl+Enter 확정, Esc 취소
+    ta.addEventListener('keydown', (ev) => {
+      if ((ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) ) {
+        ev.preventDefault();
+        this.commitTextInput();
+      } else if (ev.key === 'Escape') {
+        ev.preventDefault();
+        this.cancelTextInput();
+      }
+    });
+
+    // 포커스 아웃 시 자동 확정
+    ta.addEventListener('blur', () => {
+      // setTimeout으로 클릭 이동 등과 충돌 방지
+      setTimeout(() => {
+        if (this.isTextEditing) {
+          this.commitTextInput();
+        }
+      }, 0);
+    });
+
+    this.overlay.appendChild(ta);
+    this.textInputEl = ta;
+    ta.focus();
+  }
+
+  commitTextInput() {
+    const ta = this.textInputEl;
+    if (!ta || !this.textRect) {
+      this.isTextEditing = false;
+      return;
+    }
+
+    const text = ta.value;
+    // 입력 내용이 없으면 취소로 처리
+    if (!text || !text.trim()) {
+      this.cancelTextInput();
+      return;
+    }
+
+    const { x, y } = this.textRect;
+    // 실제 크기는 사용자가 리사이즈했을 수 있으므로 DOM에서 가져옴
+    const w = Math.max(10, parseInt(ta.style.width, 10));
+    const h = Math.max(10, parseInt(ta.style.height, 10));
+
+    const fontSize = this.settings.drawing.textFontSize || 16;
+    const color = this.settings.drawing.lineColor;
+
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = `${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+
+    const lineHeight = Math.round(fontSize * 1.3);
+    this.fillWrappedText(ctx, text, x + 4, y + 4, w - 8, h - 8, lineHeight);
+
+    ctx.restore();
+
+    // 상태 저장 및 청소
+    this.saveCanvasState();
+    this.removeTextInput();
+  }
+
+  cancelTextInput() {
+    this.removeTextInput();
+  }
+
+  removeTextInput() {
+    if (this.textInputEl && this.textInputEl.parentNode) {
+      this.textInputEl.parentNode.removeChild(this.textInputEl);
+    }
+    this.textInputEl = null;
+    this.textRect = null;
+    this.isTextEditing = false;
+  }
+
+  fillWrappedText(ctx, text, x, y, maxWidth, maxHeight, lineHeight) {
+    // 단락 기준으로 나눈 뒤 각 단락을 줄바꿈 처리
+    const paragraphs = text.split(/\r?\n/);
+    let cursorY = y;
+
+    for (const para of paragraphs) {
+      const lines = this.wrapLine(ctx, para, maxWidth);
+      for (const line of lines) {
+        if ((cursorY + lineHeight) > (y + maxHeight)) {
+          return; // 영역 넘어가면 중단
+        }
+        ctx.fillText(line, x, cursorY);
+        cursorY += lineHeight;
+      }
+      // 단락 간 여백
+      cursorY += Math.round(lineHeight * 0.2);
+      if ((cursorY + lineHeight) > (y + maxHeight)) {
+        return;
+      }
+    }
+  }
+
+  wrapLine(ctx, text, maxWidth) {
+    // 공백 단위로 기본 래핑, 공백이 거의 없으면 문자 단위로 폴백
+    const words = text.trim().length ? text.split(/(\s+)/).filter(Boolean) : [];
+    const useChar = words.length <= 1; // 단어가 거의 없으면 문자 단위
+
+    if (useChar) {
+      const chars = Array.from(text);
+      const lines = [];
+      let current = '';
+      for (const ch of chars) {
+        const test = current + ch;
+        if (ctx.measureText(test).width > maxWidth && current) {
+          lines.push(current);
+          current = ch;
+        } else {
+          current = test;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
+    } else {
+      const lines = [];
+      let current = '';
+      for (const token of words) {
+        const test = current + token;
+        if (ctx.measureText(test).width > maxWidth && current) {
+          lines.push(current.trimEnd());
+          // 공백으로 시작하지 않도록 트림 후 새 줄 시작
+          current = token.trimStart();
+        } else {
+          current = test;
+        }
+      }
+      if (current) lines.push(current.trimEnd());
+      return lines;
+    }
+  }
+
   stopDrawing(e) {
     if (!this.isDrawing) return;
 
@@ -677,6 +909,18 @@ class SketchMasking {
 
     // 그리기 모드인 경우
     if (this.activeMode === 'drawing') {
+      // 텍스트 도구는 별도 처리: 입력창 생성
+      if (this.currentTool === 'text') {
+        const x = Math.min(this.startX, currentX);
+        const y = Math.min(this.startY, currentY);
+        const w = Math.abs(currentX - this.startX);
+        const h = Math.abs(currentY - this.startY);
+        // 가이드 제거
+        this.tempCtx.clearRect(0, 0, this.tempCanvas.width, this.tempCanvas.height);
+        this.createTextInputAtRect(x, y, w, h);
+        return;
+      }
+
       // 임시 캔버스의 내용을 메인 캔버스로 복사 (펜 도구 제외)
       if (this.currentTool !== 'pen') {
         this.ctx.drawImage(this.tempCanvas, 0, 0);
@@ -967,6 +1211,11 @@ class SketchMasking {
 
     // 캔버스 초기화
     this.clearCanvas();
+
+    // 텍스트 입력창 제거
+    if (this.isTextEditing) {
+      this.removeTextInput();
+    }
 
     // 모든 영역 마스킹 제거
     if (this.areaMasks.length > 0) {
